@@ -108,10 +108,12 @@ proc wapp-start {arglist} {
   set port 0
   set n [llength $arglist]
   for {set i 0} {$i<$n} {incr i} {
-    switch -- [lindex $args $i] {
-      -port {incr i; set port [lindex $args $i]}
-      -mode {incr i; set mode [lindex $args $i]}
-      default {error "unknown option: [lindex $args 1]"}
+    set term [lindex $arglist $i]
+    if {[string match --* $term]} {set term [string range $term 1 end]}
+    switch -- $term {
+      -port {incr i; set port [lindex $arglist $i]}
+      -mode {incr i; set mode [lindex $arglist $i]}
+      default {error "unknown option: $term"}
     }
   }
   if {$mode=="auto" && [info exists env(GATEWAY_INTERFACE)]
@@ -139,10 +141,12 @@ proc wappInt-start-listener {port localonly browser} {
   } else {
     set x [socket -server wappInt-new-connection $port]
   }
+  set coninfo [chan configure $x -sockname]
+  set port [lindex $coninfo 2]
   if {$browser} {
-    set port [chan configure $x -sockname]
-    set url http://127.0.0.1:[lindex $port 2]/
-    wappInt-start-browser $url
+    wappInt-start-browser http://127.0.0.1:$port/
+  } else {
+    puts "Listening for HTTP requests on TCP port $port"
   }
 }
 
