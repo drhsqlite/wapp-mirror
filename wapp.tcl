@@ -111,14 +111,27 @@ proc wapp-start {arglist} {
     set term [lindex $arglist $i]
     if {[string match --* $term]} {set term [string range $term 1 end]}
     switch -- $term {
-      -port {incr i; set port [lindex $arglist $i]}
-      -mode {incr i; set mode [lindex $arglist $i]}
+      -port {
+         incr i;
+         set port [lindex $arglist $i]
+       }
+      -mode {
+         incr i;
+         set mode [lindex $arglist $i]
+         if {[lsearch {cgi server auto scgi} $mode]<0} {
+           error "--mode should be one of 'cgi', 'server', 'auto', or 'scgi'"
+         }
+      }
       default {error "unknown option: $term"}
     }
   }
-  if {$mode=="auto" && [info exists env(GATEWAY_INTERFACE)]
-        && $env(GATEWAY_INTERFACE)=="CGI/1.0"} {
-     wappInt-hanle-cgi-request
+  if {($mode=="auto"
+       && [info exists env(GATEWAY_INTERFACE)]
+       && $env(GATEWAY_INTERFACE)=="CGI/1.0")
+    || $mode=="cgi"
+  } {
+     wappInt-handle-cgi-request
+     return
   }
   if {$mode=="server"} {
     wappInt-start-listener $port 0 0
