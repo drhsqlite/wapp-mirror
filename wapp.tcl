@@ -84,8 +84,10 @@ proc wapp-safety-check {} {
     set ln 0
     foreach x [split [info body $p] \n] {
       incr ln
-      if {[regexp {^[ \t]*wapp[ \t]+\[} $x] ||
-          [regexp {^[ \t]*wapp[ \t]+[^\173][^\n]*[[$]} $x]} {
+      if {[regexp {^[ \t]*wapp[ \t]+([^\n]+)} $x all tail]
+       && [string index $tail 0]!="\173"
+       && [regexp {[[$]} $tail]
+      } {
         append res "$p:$ln: unsafe \"wapp\" call: \"[string trim $x]\"\n"
       }
     }
@@ -300,10 +302,21 @@ proc wappInt-handle-request {chan} {
   dict set wapp .mimetype {text/html; charset=utf-8}
   dict set wapp .reply-code {200 Ok}
   set mname [dict get $wapp PATH_HEAD]
-  if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
-    wapp-page-$mname
-  } else {
-    wapp-default
+  if {[catch {
+    if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
+      wapp-page-$mname
+    } else {
+      wapp-default
+    }
+  } msg]} {
+    wapp-reset
+    wapp-reply-code "500 Internal Server Error"
+    wapp-mimetype text/html
+    wapp "<h1>Wapp Application Error</h1>\n"
+    wapp "<pre>\n"
+    wapp-escape-html $::errorInfo
+    wapp "</pre>\n"
+    dict unset wapp .new-cookies
   }
   puts $chan "HTTP/1.0 [dict get $wapp .reply-code]\r"
   puts $chan "Server: wapp\r"

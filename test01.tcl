@@ -4,14 +4,14 @@
 source wapp.tcl
 proc wapp-default {} {
   global wapp
+  set B [dict get $wapp BASE_URL]
   wapp "<h1>Hello, World!</h1>\n"
-  wapp "<p>See the <a href='/env'>Wapp Environment</a></p>\n"
-  wapp "<p>Another link: "
-  wapp-unsafe "<a href='[dict get $wapp BASE_URL]/fullenv'>"
-  wapp "Full Environment</a>\n"
-  wapp "<p>Lint this application: "
-  wapp-unsafe "<a href='[dict get $wapp BASE_URL]/lint'>"
-  wapp "Lint</a>\n"
+  wapp "<ol>"
+  wapp "<li><p><a href='/env'>Wapp Environment</a></p>\n"
+  wapp-unsafe "<li><p><a href='$B/fullenv'>Full Environment</a>\n"
+  wapp-unsafe "<li><p><a href='$B/lint'>Lint</a>\n"
+  wapp-unsafe "<li><p><a href='$B/errorout'>Deliberate error</a>\n"
+  wapp "</ol>"
 }
 proc wapp-page-env {} {
   global wapp
@@ -64,5 +64,13 @@ proc wapp-page-lint {} {
     wapp-escape-html $res
     wapp "</pre>\n"
   }
+}
+
+# Deliberately generate an error to test error handling.
+proc wapp-page-errorout {} {
+  wapp "<h1>Intentially generate an error</h1>\n"
+  wapp "<p>This test should be ignored by the error handler\n"
+  wapp $noSuchVariable
+  wapp "<p>After the error\n"
 }
 wapp-start $::argv
