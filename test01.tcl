@@ -33,6 +33,14 @@ proc wapp-page-env {} {
 proc wapp-page-fullenv {} {
   global wapp
   wapp "<h1>Wapp Full Environment</h1>\n"
+  wapp-unsafe "<form method='POST' action='[dict get $wapp SELF_URL]'>\n"
+  wapp "<input type='checkbox' name='var1'"
+  if {[dict exists $wapp showhdr]} {
+    wapp " checked"
+  }
+  wapp "> Var1\n"
+  wapp "<input type='submit' value='Go'>\n"
+  wapp "</form>"
   wapp "<pre>\n"
   foreach var [lsort [dict keys $wapp]] {
     if {$var==".reply"} continue

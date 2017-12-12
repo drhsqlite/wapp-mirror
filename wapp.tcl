@@ -165,45 +165,42 @@ proc wappInt-readable {chan} {
 }
 proc wappInt-readable-unsafe {chan} {
   upvar #0 wappInt-$chan W
-  set line [string trimright [gets $chan]]
-  set n [string length $line]
-  if {$n>0} {
-    if {[dict get $W .header]=="" || [regexp {^\s+} $line]} {
-      dict append W .header $line
-    } else {
-      dict append W .header \n$line
+  if {![dict exists $W .toread]} {
+    # If the .toread key is not set, that means we are still reading
+    # the header
+    set line [string trimright [gets $chan]]
+    set n [string length $line]
+    if {$n>0} {
+      if {[dict get $W .header]=="" || [regexp {^\s+} $line]} {
+        dict append W .header $line
+      } else {
+        dict append W .header \n$line
+      }
+      if {[string length [dict get $W .header]]>100000} {
+        error "HTTP request header too big - possible DOS attack"
+      }
+    } elseif {$n==0} {
+      wappInt-parse-header $chan
+      set len 0
+      if {[dict exists $W .hdr:CONTENT-LENGTH]} {
+        set len [dict get $W .hdr:CONTENT-LENGTH]
+      }
+      if {$len>0} {
+        dict set W .toread $len
+      } else {
+        wappInt-handle-request $chan
+      }
     }
-    if {[string length [dict get $W .header]]>100000} {
-      error "HTTP request header too big - possible DOS attack"
-    }
-  } elseif {$n==0} {
-    wappInt-parse-header $chan
-    if {[dict get $W REQUEST_METHOD]=="POST"
-           && [dict exists $W hdr.CONTENT-LENGTH]
-           && [string is integer -strict [dict get $W hdr.CONTENT-LENGTH]]} {
-      dict set W .toread [dict get $W hdr.CONTENT-LENGTH]
-      fileevent $chan readable [list wappInt-read-post-data $chan]
-    } else {
+  } else {
+    # If .toread is set, that means we are reading the query content.
+    # Continue reading until .toread reaches zero.
+    set got [read $chan [dict get $W .toread]]
+    dict append W .post $got
+    dict set W .toread [expr {[dict get $W .toread]-[string length $got]}]
+    if {[dict get $W .toread]<=0} {
+      wappInt-parse-post-data $chan
       wappInt-handle-request $chan
     }
-  }
-}
-
-# Read in as much of the POST data as we can
-#
-proc wappInt-read-post-data {chan} {
-  if {[catch [list wappInt-read-post-data-unsafe $chan]]} {
-    wappInt-close-channel $chan
-  }
-}
-proc wappInt-read-post-data-unsafe {chan} {
-  upvar #0 wappInt-$chan W
-  set got [read $chan [dict get $W .toread]]
-  dict append W .post $got
-  dict set W .toread [expr {[dict get $W .toread]-[string length $got]}]
-  if {[dict get $W .toread]<=0} {
-    wappInt-parse-post-data $chan
-    wappInt-handle-request $chan
   }
 }
 
@@ -305,4 +302,22 @@ proc wappInt-url-decode {str} {
       $str {[encoding convertfrom utf-8 [DecodeHex \1\2]]} str
   regsub -all -- {%([0-7][A-Fa-f0-9])} $str {\\u00\1} str
   return [subst -novar $str]
+}
+
+# Process POST data
+#
+proc wappInt-parse-post-data {chan} {
+  upvar #0 wappInt-$chan W
+  if {[dict exists $W .hdr:CONTENT-TYPE]
+      && [dict get $W .hdr:CONTENT-TYPE]=="application/x-www-form-urlencoded"} {
+    foreach qterm [split [string trim [dict get $W .post]] &] {
+      set qsplit [split $qterm =]
+      set nm [lindex $qsplit 0]
+      if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
+        dict set W $nm [wappInt-url-decode [lindex $qsplit 1]]
+      }
+    }
+    return
+  }
+  # TODO: Decode multipart/form-data
 }
