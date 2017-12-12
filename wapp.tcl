@@ -139,7 +139,7 @@ proc wappInt-start-listener {port localonly browser} {
   }
   if {$browser} {
     set port [chan configure $x -sockname]
-    set url http://[lindex $port 1]:[lindex $port 2]/
+    set url http://127.0.0.1:[lindex $port 2]/
     wappInt-start-browser $url
   }
 }
@@ -149,7 +149,7 @@ proc wappInt-start-listener {port localonly browser} {
 proc wappInt-start-browser {url} {
   global tcl_platform
   if {$tcl_platform(platform)=="windows"} {
-    exec start $url &
+    exec cmd /c start $url &
   } elseif {$tcl_platform(os)=="Darwin"} {
     exec open $url &
   } elseif {[catch {exec xdg-open $url}]} {
