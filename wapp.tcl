@@ -16,9 +16,10 @@
 #
 #   (2)  Indentifiers intended for internal use only begin with "wappInt"
 #
-#   (2)  Assume single-threaded operation
-#
-#   (3)  Designed for maintainability
+
+# Add text to the end of the HTTP reply.  wapp and wapp-safe work the
+# same.  The only difference is in how wapp-safety-check deals with these
+# procs during analysis.
 #
 proc wapp {txt} {
   global wapp
@@ -28,18 +29,29 @@ proc wapp-unsafe {txt} {
   global wapp
   dict append wapp .reply $txt
 }
+
+# Append text after escaping it for HTML
+#
 proc wapp-escape-html {txt} {
   global wapp
   dict append wapp .reply [string map {& &amp; < &lt; > &gt;} $txt]
 }
+
+# Reset the document back to an empty string.
+#
 proc wapp-reset {} {
   global wapp
   dict set wapp .reply {}
 }
+
+# Change the mime-type of the result document.
 proc wapp-mimetype {x} {
   global wapp
   dict set wapp .mimetype $x
 }
+
+# Change the reply code.
+#
 proc wapp-reply-code {x} {
   global wapp
   dict set wapp .reply-code $x
@@ -216,7 +228,15 @@ proc wappInt-parse-header {chan} {
   }
   dict set W REQUEST_URI $uri0
   dict set W PATH_INFO $uri0
-  dict set W QUERY_STRING [lindex $split_uri 1]
+  set uri1 [lindex $split_uri 1]
+  dict set W QUERY_STRING $uri1
+  foreach qterm [split $uri1 &] {
+    set qsplit [split $qterm =]
+    set nm [lindex $qsplit 0]
+    if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
+      dict set W $nm [wappInt-url-decode [lindex $qsplit 1]]
+    }
+  }
   if {[regexp {^/([^/]+)(.*)$} $uri0 all head tail]} {
     dict set W PATH_HEAD $head
     dict set W PATH_TAIL $tail
@@ -233,13 +253,14 @@ proc wappInt-parse-header {chan} {
     set name [string toupper $name]
     dict set W .hdr:$name $value
   }
-  if {![dict exists $W hdr.HOST]} {
+  if {![dict exists $W .hdr:HOST]} {
     dict set W BASE_URL {}
   } elseif {[dict exists $W HTTPS]} {
-    dict set W BASE_URL https://[dict get $W hdr.HOST]
+    dict set W BASE_URL https://[dict get $W .hdr:HOST]
   } else {
-    dict set W BASE_URL http://[dict get $W REMOTE_HOST]
+    dict set W BASE_URL http://[dict get $W .hdr:HOST]
   }
+  dict set W SELF_URL [dict get $W BASE_URL]/[dict get $W PATH_HEAD]
 }
 
 # Invoke application-supplied methods to generate a reply to
@@ -252,7 +273,7 @@ proc wappInt-handle-request {chan} {
   upvar #0 wappInt-$chan W wapp wapp
   set wapp $W
   dict set wapp .reply {}
-  dict set wapp .mimetype text/html
+  dict set wapp .mimetype {text/html; charset=utf-8}
   dict set wapp .reply-code {200 Ok}
   set mname [dict get $wapp PATH_HEAD]
   if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
@@ -268,4 +289,20 @@ proc wappInt-handle-request {chan} {
   puts $chan [dict get $wapp .reply]
   flush $chan
   wappInt-close-channel $chan
+}
+
+# Undo the www-url-encoded format.
+#
+# HT: This code stolen from ncgi.tcl
+#
+proc wappInt-url-decode {str} {
+  set str [string map [list + { } "\\" "\\\\" \[ \\\[ \] \\\]] $str]
+  regsub -all -- \
+      {%([Ee][A-Fa-f0-9])%([89ABab][A-Fa-f0-9])%([89ABab][A-Fa-f0-9])} \
+      $str {[encoding convertfrom utf-8 [DecodeHex \1\2\3]]} str
+  regsub -all -- \
+      {%([CDcd][A-Fa-f0-9])%([89ABab][A-Fa-f0-9])}                     \
+      $str {[encoding convertfrom utf-8 [DecodeHex \1\2]]} str
+  regsub -all -- {%([0-7][A-Fa-f0-9])} $str {\\u00\1} str
+  return [subst -novar $str]
 }

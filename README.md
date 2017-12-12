@@ -66,15 +66,12 @@ available in ::wapp.
     proc wapp-page-env {} {
       global wapp
       wapp "<h1>Wapp Environment</h1>\n"
-      wapp "<table border=1 cellpadding=5>\n"
+      wapp "<pre>\n"
       foreach var [lsort [dict keys $wapp]] {
-        wapp {<tr><td valign='top' align='left'>}
-        wapp-escape-html wapp.$var
-        wapp {</td><td valign='top' align='left'>}
-        wapp-escape-html "[dict get $wapp $var]"
-        wapp "</td><tr>\n"
+        if {[string index $var 0]=="."} continue
+        wapp-escape-html "$var = [list [dict get $wapp $var]]\n"
       }
-      wapp "</table>"
+      wapp "</pre>"
     }
     wapp-start $::argv
 
@@ -158,6 +155,10 @@ The ::wapp variable contains the following environment values:
 
   +  **PATH_TAIL**  
      All of PATH_INFO that follows PATH_HEAD.
+
+  +  **SELF_URL**  
+     The URL for the current page, stripped of query parameter. This is
+     useful for filling in the action= attribute of forms.
  
 
 ### 1.3 Additional Wapp Commands
