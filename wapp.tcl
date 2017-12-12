@@ -37,6 +37,13 @@ proc wapp-escape-html {txt} {
   dict append wapp .reply [string map {& &amp; < &lt; > &gt;} $txt]
 }
 
+# Append text after escaping it for URL query parameters.
+#
+proc wapp-escape-url {txt} {
+  global wapp
+  dict append wapp .reply [wappInt-url-encode $txt]
+}
+
 # Reset the document back to an empty string.
 #
 proc wapp-reset {} {
@@ -55,6 +62,13 @@ proc wapp-mimetype {x} {
 proc wapp-reply-code {x} {
   global wapp
   dict set wapp .reply-code $x
+}
+
+# Set a cookie
+#
+proc wapp-set-cookie {name value} {
+  global wapp
+  dict lappend wapp .new-cookies $name $value
 }
 
 # Examine the bodys of all procedures in this program looking for
@@ -295,6 +309,14 @@ proc wappInt-handle-request {chan} {
   puts $chan "Server: wapp\r"
   puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
   puts $chan "Content-Type: [dict get $wapp .mimetype]\r"
+  if {[dict exists $wapp .new-cookies]} {
+    foreach {nm val} [dict get $wapp .new-cookies] {
+      if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
+        set val [wappInt-url-encode $val]
+        puts $chan "Set-Cookie: $nm=$val; HttpOnly; Path=/\r"
+      }
+    }
+  }
   puts $chan "Connection: Closed\r\n\r"
   puts $chan [dict get $wapp .reply]
   flush $chan
@@ -333,4 +355,43 @@ proc wappInt-parse-post-data {chan} {
     return
   }
   # TODO: Decode multipart/form-data
+}
+
+# Data for doing url-encoding.
+#
+array set wappInt-map {
+  \000 %00 \001 %01 \002 %02 \003 %03 \004 %04 \005 %05 \006 %06 \007 %07
+  \010 %08 \011 %09 \012 %0A \013 %0B \014 %0C \015 %0D \016 %0E \017 %0F
+  \020 %10 \021 %11 \022 %12 \023 %13 \024 %14 \025 %15 \026 %16 \027 %17
+  \030 %18 \031 %19 \032 %1A \033 %1B \034 %1C \035 %1D \036 %1E \037 %1F
+  { } + \041 %21 \042 %22 \043 %23 \044 %24 \045 %25 \046 %26 \047 %27
+  \050 %28 \051 %29 \052 %2A \053 %2B \054 %2C \055 %2D \056 %2E \057 %2F
+  \072 %3A \073 %3B \074 %3C \075 %3D \076 %3E \077 %3F \100 %40 \133 %5B
+  \134 %5C \135 %5D \136 %5E \137 %5F \140 %60 \173 %7B \174 %7C \175 %7D
+  \176 %7E \177 %7F \200 %80 \201 %81 \202 %82 \203 %83 \204 %84 \205 %85
+  \206 %86 \207 %87 \210 %88 \211 %89 \212 %8A \213 %8B \214 %8C \215 %8D
+  \216 %8E \217 %8F \220 %90 \221 %91 \222 %92 \223 %93 \224 %94 \225 %95
+  \226 %96 \227 %97 \230 %98 \231 %99 \232 %9A \233 %9B \234 %9C \235 %9D
+  \236 %9E \237 %9F \240 %A0 \241 %A1 \242 %A2 \243 %A3 \244 %A4 \245 %A5
+  \246 %A6 \247 %A7 \250 %A8 \251 %A9 \252 %AA \253 %AB \254 %AC \255 %AD
+  \256 %AE \257 %AF \260 %B0 \261 %B1 \262 %B2 \263 %B3 \264 %B4 \265 %B5
+  \266 %B6 \267 %B7 \270 %B8 \271 %B9 \272 %BA \273 %BB \274 %BC \275 %BD
+  \276 %BE \277 %BF \300 %C0 \301 %C1 \302 %C2 \303 %C3 \304 %C4 \305 %C5
+  \306 %C6 \307 %C7 \310 %C8 \311 %C9 \312 %CA \313 %CB \314 %CC \315 %CD
+  \316 %CE \317 %CF \320 %D0 \321 %D1 \322 %D2 \323 %D3 \324 %D4 \325 %D5
+  \326 %D6 \327 %D7 \330 %D8 \331 %D9 \332 %DA \333 %DB \334 %DC \335 %DD
+  \336 %DE \337 %DF \340 %E0 \341 %E1 \342 %E2 \343 %E3 \344 %E4 \345 %E5
+  \346 %E6 \347 %E7 \350 %E8 \351 %E9 \352 %EA \353 %EB \354 %EC \355 %ED
+  \356 %EE \357 %EF \360 %F0 \361 %F1 \362 %F2 \363 %F3 \364 %F4 \365 %F5
+  \366 %F6 \367 %F7 \370 %F8 \371 %F9 \372 %FA \373 %FB \374 %FC \375 %FD
+  \376 %FE \377 %FF
+}
+
+# Do URL encoding
+#
+proc wappInt-url-encode {str} {
+  upvar #0 wappInt-map map
+  regsub -all -- \[^a-zA-Z0-9\] $str {$map(&)} str
+  regsub -all -- {[][{})\\]\)} $str {\\&} str
+  return [subst -nocommand $str]
 }

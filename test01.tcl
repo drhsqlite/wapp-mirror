@@ -15,6 +15,7 @@ proc wapp-default {} {
 }
 proc wapp-page-env {} {
   global wapp
+  wapp-set-cookie env-cookie simple
   wapp "<h1>Wapp Environment</h1>\n"
   wapp-unsafe "<form method='GET' action='[dict get $wapp SELF_URL]'>\n"
   wapp "<input type='checkbox' name='showhdr'"
@@ -35,6 +36,7 @@ proc wapp-page-env {} {
 }
 proc wapp-page-fullenv {} {
   global wapp
+  wapp-set-cookie env-cookie full
   wapp "<h1>Wapp Full Environment</h1>\n"
   wapp-unsafe "<form method='POST' action='[dict get $wapp SELF_URL]'>\n"
   wapp "<input type='checkbox' name='var1'"
