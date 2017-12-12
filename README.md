@@ -4,12 +4,12 @@ Wapp - A Web-Application Framework for TCL
 1.0 Introduction
 ----------------
 
-Wapp is a simple and lightweight framework that strives to simplify the
+Wapp is a lightweight framework that strives to simplify the
 construction of web application written in TCL. The same Wapp application
 can be launched in multiple ways:
 
-  *  From the command-line (ex: <tt>tclsh app.tcl</tt>).  In this mode,
-     The wapp-app find an available TCL port on localhost, starts an
+  *  From the command-line (ex: "<tt>tclsh app.tcl</tt>").  In this mode,
+     The wapp finds an available TCL port on localhost, starts an
      in-process web server listening on that port, and then launches the 
      users default web browser directed at localhost:$port
 
@@ -19,8 +19,8 @@ can be launched in multiple ways:
 
   *  As a stand-alone web server
 
-All four methods of launching the application provide the same interface
-to the user.
+All four methods use the same application code and present the same
+interface to the application user.
 
 1.0 Hello World!
 ----------------
@@ -34,7 +34,8 @@ Wapp is designed to be easy to use.  A hello-world program is as follows:
     }
     wapp-start $::argv
 
-The application defines one or more procedures that accept HTTP requests.
+The application defines one or more procedures that accept HTTP requests
+and generate appropriate replies.
 For an HTTP request where the initial portion of the URI is "abcde", the
 procedure named "wapp-page-abcde" will be invoked to construct the reply.
 If no such procedure exists, "wapp-default" is invoked instead.
@@ -44,7 +45,7 @@ command.  Each "wapp" command appends new text to the reply.
 
 The "wapp-start" command starts up the built-in web server.
 
-To run this application, but the code above into a file named "main.tcl"
+To run this application, copy the code above into a file named "main.tcl"
 and then run type "<tt>tclsh main.tcl</tt>" at the command-line.  That
 should cause the "Hello, World!" page to appear in your web browser.
 
@@ -84,8 +85,9 @@ warning if its argument contains TCL variable or command expansions, as a
 defense against accidental XSS vulnerabilities.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
-generates an HTML unordered list where each element of the list describes
-a single value in the global ::wapp dict.  The "wapp-escape-html"
+generates an HTML that describes the content of the ::wapp dict.
+Keys that begin with "." are for internal use by Wapp and are skipped
+for this display. The "wapp-escape-html"
 command is like "wapp" and "wapp-unsafe" except that "wapp-escape-html"
 escapes HTML markup so that it displays correctly in the output.
 
@@ -94,7 +96,7 @@ escapes HTML markup so that it displays correctly in the output.
 To better understand how the ::wapp dict works, try running the previous
 sample program, but extend the /env URL with extra path elements and query
 parameters.  For example:
-[http://localhost:8080/env/longer/path?q1=5&title=hello+world%21]
+<http://localhost:8080/env/longer/path?q1=5&title=hello+world%21>
 
 Notice how the query parameters in the input URL are decoded and become
 elements of the ::wapp dict.  The same thing occurs with POST parameters
@@ -112,11 +114,11 @@ omitted from the ::wapp variable
 
 The ::wapp variable contains the following environment values:
 
-  +  **HTTP_HOST**  
+  +  **HTTP\_HOST**  
      The hostname (or IP address) and port that the client used to create
      the current HTTP request.  This is the first part of the request URL.
 
-  +  **HTTP_USER_AGENT**  
+  +  **HTTP\_USER\_AGENT**  
      The name of the web-browser or other client program that generated
      the current HTTP request.
 
@@ -124,7 +126,7 @@ The ::wapp variable contains the following environment values:
      If the HTTP request arrived of SSL, then this variable has the value "on".
      For an unencrypted request, the variable does not exist.
 
-  +  **REMOTE_ADDR**  
+  +  **REMOTE\_ADDR**  
      The IP address and port from which the HTTP request originated.
 
   +  **SCRIPT_NAME**  
@@ -132,31 +134,31 @@ The ::wapp variable contains the following environment values:
      words, it is the initial part of the URL path that identifies the
      CGI script.  For other modes, this variable is an empty string.
 
-  +  **PATH_INFO**  
-     The part of the URL path that follows the SCRIPT_NAME.  For all modes
+  +  **PATH\_INFO**  
+     The part of the URL path that follows the SCRIPT\_NAME.  For all modes
      other than CGI, this is exactly the URL pathname.
 
-  +  **REQUEST_URI**  
+  +  **REQUEST\_URI**  
      The URL for the inbound request, without the initial "http://" or
-     "https://" and without the HTTP_HOST.
+     "https://" and without the HTTP\_HOST.
 
-  +  **REQUEST_METHOD**  
+  +  **REQUEST\_METHOD**  
      "GET" or "HEAD" or "POST"
 
-  +  **BASE_URL**  
-     The text of the request URL through the SCRIPT_NAME.  This value can
+  +  **BASE\_URL**  
+     The text of the request URL through the SCRIPT\_NAME.  This value can
      be prepended to hyperlinks to ensure that the correct page is reached by
      those hyperlinks.
 
-  +  **PATH_HEAD**  
-     The first element in the PATH_INFO.  The value of PATH_HEAD is used to
+  +  **PATH\_HEAD**  
+     The first element in the PATH\_INFO.  The value of PATH\_HEAD is used to
      select one of the "wapp-page-XXXXX" commands to run in order to generate
      the output web page.
 
-  +  **PATH_TAIL**  
-     All of PATH_INFO that follows PATH_HEAD.
+  +  **PATH\_TAIL**  
+     All of PATH\_INFO that follows PATH\_HEAD.
 
-  +  **SELF_URL**  
+  +  **SELF\_URL**  
      The URL for the current page, stripped of query parameter. This is
      useful for filling in the action= attribute of forms.
  
