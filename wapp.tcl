@@ -57,22 +57,26 @@ proc wapp-reply-code {x} {
   dict set wapp .reply-code $x
 }
 
-# This is a safety-check that is run prior to startup
-#
 # Examine the bodys of all procedures in this program looking for
-# unsafe calls to "wapp".  Issue warnings.
+# unsafe calls to "wapp".  Return a text string containing warnings.
+# Return an empty string if all is ok.
+#
+# This routine is advisory only.  It misses some constructs that are
+# dangerous and flags others that are safe.
 #
 proc wapp-safety-check {} {
+  set res {}
   foreach p [info procs] {
     set ln 0
     foreach x [split [info body $p] \n] {
       incr ln
-      if {[regexp {[;\n] *wapp +\[} $x] ||
-          [regexp {[;\n] *wapp +"[^\n]*[[$]} $x]} {
-        puts "$p:$ln: unsafe \"wapp\" call: \"[string trim $x]\"\n"
+      if {[regexp {^[ \t]*wapp[ \t]+\[} $x] ||
+          [regexp {^[ \t]*wapp[ \t]+[^\173][^\n]*[[$]} $x]} {
+        append res "$p:$ln: unsafe \"wapp\" call: \"[string trim $x]\"\n"
       }
     }
   }
+  return $res
 }
 
 # Start up the wapp framework.  Parameters are a list passed as the
@@ -258,6 +262,15 @@ proc wappInt-parse-header {chan} {
     dict set W BASE_URL http://[dict get $W .hdr:HOST]
   }
   dict set W SELF_URL [dict get $W BASE_URL]/[dict get $W PATH_HEAD]
+  if {[dict exists $W .hdr:COOKIE]} {
+    foreach qterm [split [dict get $W .hdr:COOKIE] {;}] {
+      set qsplit [split [string trim $qterm] =]
+      set nm [lindex $qsplit 0]
+      if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
+        dict set W $nm [wappInt-url-decode [lindex $qsplit 1]]
+      }
+    }
+  }
 }
 
 # Invoke application-supplied methods to generate a reply to

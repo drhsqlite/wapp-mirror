@@ -9,6 +9,9 @@ proc wapp-default {} {
   wapp "<p>Another link: "
   wapp-unsafe "<a href='[dict get $wapp BASE_URL]/fullenv'>"
   wapp "Full Environment</a>\n"
+  wapp "<p>Lint this application: "
+  wapp-unsafe "<a href='[dict get $wapp BASE_URL]/lint'>"
+  wapp "Lint</a>\n"
 }
 proc wapp-page-env {} {
   global wapp
@@ -48,5 +51,16 @@ proc wapp-page-fullenv {} {
   }
   wapp "</pre>"
   wapp-unsafe "<p><a href='[dict get $wapp BASE_URL]/'>Home</a></p>\n"
+}
+proc wapp-page-lint {} {
+  wapp "<h1>Potental Cross-Site Injection Vulerabilities In This App</h1>\n"
+  set res [wapp-safety-check]
+  if {$res==""} {
+    wapp "<p>No problems found.</p>\n"
+  } else {
+    wapp "<pre>\n"
+    wapp-escape-html $res
+    wapp "</pre>\n"
+  }
 }
 wapp-start $::argv
