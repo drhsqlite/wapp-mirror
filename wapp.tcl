@@ -202,8 +202,8 @@ proc wappInt-readable-unsafe {chan} {
     } elseif {$n==0} {
       wappInt-parse-header $chan
       set len 0
-      if {[dict exists $W .hdr:CONTENT-LENGTH]} {
-        set len [dict get $W .hdr:CONTENT-LENGTH]
+      if {[dict exists $W CONTENT_LENGTH]} {
+        set len [dict get $W CONTENT_LENGTH]
       }
       if {$len>0} {
         dict set W .toread $len
@@ -215,7 +215,7 @@ proc wappInt-readable-unsafe {chan} {
     # If .toread is set, that means we are reading the query content.
     # Continue reading until .toread reaches zero.
     set got [read $chan [dict get $W .toread]]
-    dict append W .post $got
+    dict append W CONTENT $got
     dict set W .toread [expr {[dict get $W .toread]-[string length $got]}]
     if {[dict get $W .toread]<=0} {
       wappInt-parse-post-data $chan
@@ -268,14 +268,22 @@ proc wappInt-parse-header {chan} {
       error "invalid header line: \"$x\""
     }
     set name [string toupper $name]
-    dict set W .hdr:$name $value
+    switch -- $name {
+      REFERER {}
+      USER-AGENT {set name HTTP_USER_AGENT}
+      CONTENT-LENGTH {set name CONTENT_LENGTH}
+      CONTENT-TYPE {set name CONTENT_TYPE}
+      HOST {set name HTTP_HOST}
+      default {set name .hdr:$name}
+    }
+    dict set W $name $value
   }
-  if {![dict exists $W .hdr:HOST]} {
+  if {![dict exists $W HTTP_HOST]} {
     dict set W BASE_URL {}
   } elseif {[dict exists $W HTTPS]} {
-    dict set W BASE_URL https://[dict get $W .hdr:HOST]
+    dict set W BASE_URL https://[dict get $W HTTP_HOST]
   } else {
-    dict set W BASE_URL http://[dict get $W .hdr:HOST]
+    dict set W BASE_URL http://[dict get $W HTTP_HOST]
   }
   dict set W SELF_URL [dict get $W BASE_URL]/[dict get $W PATH_HEAD]
   if {[dict exists $W .hdr:COOKIE]} {
@@ -352,13 +360,19 @@ proc wappInt-url-decode {str} {
   return [subst -novar $str]
 }
 
-# Process POST data
+# Process POST data.
+#
+# As a defense against Cross-Site Request Forgeries, POST data is ignored
+# if the REFERER is not within the BASE_URL.
 #
 proc wappInt-parse-post-data {chan} {
   upvar #0 wappInt-$chan W
-  if {[dict exists $W .hdr:CONTENT-TYPE]
-      && [dict get $W .hdr:CONTENT-TYPE]=="application/x-www-form-urlencoded"} {
-    foreach qterm [split [string trim [dict get $W .post]] &] {
+  if {[dict exists $W CONTENT_TYPE]
+   && [dict get $W CONTENT_TYPE]=="application/x-www-form-urlencoded"
+   && [dict exists $W REFERER]
+   && [string match [dict get $W BASE_URL]/* [dict get $W REFERER]]
+  } {
+    foreach qterm [split [string trim [dict get $W CONTENT]] &] {
       set qsplit [split $qterm =]
       set nm [lindex $qsplit 0]
       if {[regexp {^[a-z][a-z0-9]*$} $nm]} {

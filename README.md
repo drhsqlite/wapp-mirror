@@ -131,19 +131,31 @@ The ::wapp variable contains the following environment values:
 
   +  **SCRIPT_NAME**  
      In CGI mode, this is the name of the CGI script in the URL.  In other
-     words, it is the initial part of the URL path that identifies the
+     words, this is the initial part of the URL path that identifies the
      CGI script.  For other modes, this variable is an empty string.
 
   +  **PATH\_INFO**  
      The part of the URL path that follows the SCRIPT\_NAME.  For all modes
-     other than CGI, this is exactly the URL pathname.
+     other than CGI, this is exactly the URL pathname, though with the
+     query parameters removed.  PATH_INFO begins with a "/"
 
   +  **REQUEST\_URI**  
      The URL for the inbound request, without the initial "http://" or
-     "https://" and without the HTTP\_HOST.
+     "https://" and without the HTTP\_HOST.  This variable is the same as
+     the concatenation of $SCRIPT\_NAME and $PATH\_INFO.
 
   +  **REQUEST\_METHOD**  
      "GET" or "HEAD" or "POST"
+
+  *  **CONTENT\_LENGTH**  
+     The number of bytes of POST data.
+
+  *  **CONTENT\_TYPE**  
+     The mimetype of the POST data.  Usually this is
+     application/x-www-form-urlencoded.
+
+  *  **CONTENT**  
+     The raw POST data text.
 
   +  **BASE\_URL**  
      The text of the request URL through the SCRIPT\_NAME.  This value can
