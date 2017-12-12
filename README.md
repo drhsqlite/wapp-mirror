@@ -29,7 +29,7 @@ Wapp is designed to be easy to use.  A hello-world program is as follows:
 
 >
     package require wapp
-    proc wapp-default {} {
+    proc wapp-default {req} {
        wapp "<h1>Hello, World!</h1>\n"
     }
     wapp-start $::argv
@@ -51,26 +51,30 @@ should cause the "Hello, World!" page to appear in your web browser.
 
 ### 1.1 A Slightly Longer Example
 
-Information about each HTTP request is encoded in the global ::wapp()
-array variable.  The following sample program shows the information
-available in ::wapp().
+Information about each HTTP request is encoded in the global ::wapp
+dict variable.  The following sample program shows the information
+available in ::wapp.
 
 >
     package require wapp
     proc wapp-default {} {
       global wapp
       wapp "<h1>Hello, World!</h1>\n"
-      wapp-unsafe "<p>See the <a href='$wapp(BASE_URL)/env'>Wapp "
+      wapp-unsafe "<p>See the <a href='[dict get $wapp BASE_URL]/env'>Wapp "
       wapp "Environment</a></p>"
     }
     proc wapp-page-env {} {
+      global wapp
       wapp "<h1>Wapp Environment</h1>\n"
-      wapp "<p><ul>\n"
-      foreach var [lsort [array names ::wapp]] {
-        wapp <li>
-        wapp-escape-html "wapp($name) = $::wapp($name)\n"
+      wapp "<table border=1 cellpadding=5>\n"
+      foreach var [lsort [dict keys $wapp]] {
+        wapp {<tr><td valign='top' align='left'>}
+        wapp-escape-html wapp.$var
+        wapp {</td><td valign='top' align='left'>}
+        wapp-escape-html "[dict get $wapp $var]"
+        wapp "</td><tr>\n"
       }
-      wapp "</ul></p>"
+      wapp "</table>"
     }
     wapp-start $::argv
 
@@ -84,32 +88,32 @@ defense against accidental XSS vulnerabilities.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
 generates an HTML unordered list where each element of the list describes
-a single value in the global ::wapp() array.  The "wapp-escape-html"
+a single value in the global ::wapp dict.  The "wapp-escape-html"
 command is like "wapp" and "wapp-unsafe" except that "wapp-escape-html"
 escapes HTML markup so that it displays correctly in the output.
 
-### 1.2 The ::wapp() Global Variable
+### 1.2 The ::wapp Global Dict
 
-To better understand how the ::wapp() array works, try running the previous
+To better understand how the ::wapp dict works, try running the previous
 sample program, but extend the /env URL with extra path elements and query
 parameters.  For example:
 [http://localhost:8080/env/longer/path?q1=5&title=hello+world%21]
 
 Notice how the query parameters in the input URL are decoded and become
-elements of the ::wapp() array.  The same thing occurs with POST parameters
-and cookies - they are all converted into entries in the ::wapp() array
+elements of the ::wapp dict.  The same thing occurs with POST parameters
+and cookies - they are all converted into entries in the ::wapp dict
 variable so that the parameters are easily accessible to page generation
 procedures.
 
-The ::wapp() variable contains additional information about the request,
+The ::wapp variable contains additional information about the request,
 roughly corresponding to CGI environment variables.  To prevent environment
 information from overlapping and overwriting query parameters, all the
 environment information uses upper-case names and all query parameters
 are required to be lower case.  If an input URL contains an upper-case
 query parameter (or POST parameter or cookie), that parameter is silently
-omitted from the ::wapp() variable
+omitted from the ::wapp variable
 
-The ::wapp() variable contains the following environment values:
+The ::wapp variable contains the following environment values:
 
   +  **HTTP_HOST**  
      The hostname (or IP address) and port that the client used to create
