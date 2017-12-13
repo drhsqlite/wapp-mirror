@@ -1,28 +1,30 @@
 Wapp - A Web-Application Framework for TCL
-========================================
+==========================================
 
 1.0 Introduction
 ----------------
 
 Wapp is a lightweight framework that strives to simplify the
-construction of web application written in TCL. The same Wapp application
-can be launched in multiple ways:
+construction of web application written in TCL. The same Wapp-based
+application can be launched in multiple ways:
 
-  *  From the command-line (ex: "<tt>tclsh app.tcl</tt>").  In this mode,
-     The wapp finds an available TCL port on localhost, starts an
-     in-process web server listening on that port, and then launches the 
-     users default web browser directed at localhost:$port
+  1.  From the command-line (ex: "<tt>tclsh app.tcl</tt>").  In this mode,
+      The wapp finds an available TCL port on localhost, starts an
+      in-process web server listening on that port, and then launches the 
+      users default web browser directed at localhost:$port
 
-  *  As a CGI program
+  2.  As a stand-alone web server
 
-  *  As an SCGI program
+  3.  As a CGI script
 
-  *  As a stand-alone web server
+  4.  As an SCGI program
 
 All four methods use the same application code and present the same
-interface to the application user.
+interface to the application user.  An application can be developed on
+the desktop using stand-alone mode (1), then deployed as a stand-alone
+server (2), or a CGI script (3), or as an SCGI program (4).
 
-1.0 Hello World!
+2.0 Hello World!
 ----------------
 
 Wapp is designed to be easy to use.  A hello-world program is as follows:
@@ -38,19 +40,51 @@ The application defines one or more procedures that accept HTTP requests
 and generate appropriate replies.
 For an HTTP request where the initial portion of the URI is "abcde", the
 procedure named "wapp-page-abcde" will be invoked to construct the reply.
-If no such procedure exists, "wapp-default" is invoked instead.
+If no such procedure exists, "wapp-default" is invoked instead.  The latter
+technique is used for the hello-world example above.
 
 The procedure generates a reply using one or more calls to the "wapp"
 command.  Each "wapp" command appends new text to the reply.
 
-The "wapp-start" command starts up the built-in web server.
+The "wapp-start" command starts up the application.
 
 To run this application, copy the code above into a file named "main.tcl"
-and then run type "<tt>tclsh main.tcl</tt>" at the command-line.  That
-should cause the "Hello, World!" page to appear in your web browser.
+and then enter the following command:
 
+>
+    tclsh main.tcl
 
-### 1.1 A Slightly Longer Example
+That command will start up a web-server bound to the loopback
+IP address, then launch a web-browser pointing at that web-server.
+The result is that the "Hello, World!" page will automatically
+appear in your web browser.
+
+To run this same program as a traditional web-server on TCP port 8080, enter:
+
+>
+    tclsh main.tcl --server 8080
+
+Here the built-in web-server listens on all IP addresses and so the
+web page is available on other machines.  But the web-broswer is not
+automatically started in this case, so you will have to manually enter
+"http://localhost:8080/" into your web-browser in order to see the page.
+
+To run this program as CGI, put the main.tcl script in your web-servers
+file hierarchy, in the appropriate place for CGI scripts, and make any
+other web-server specific configuration changes so that the web-server
+understands that the main.tcl file is a CGI script.  Then point your
+web-browser at that script.
+
+Run the hello-world program as SCGI like this:
+
+>
+    tclsh main.tcl --scgi 9000
+
+Then configure your web-server to send SCGI requests to TCL port 9000
+for some specific URI, and point your web-browser at that URI.
+
+3.0 A Slightly Longer Example
+-----------------------------
 
 Information about each HTTP request is encoded in the global ::wapp
 dict variable.  The following sample program shows the information
@@ -91,7 +125,8 @@ for this display. The "wapp-escape-html"
 command is like "wapp" and "wapp-unsafe" except that "wapp-escape-html"
 escapes HTML markup so that it displays correctly in the output.
 
-### 1.2 The ::wapp Global Dict
+4.0 The ::wapp Global Dict
+--------------------------
 
 To better understand how the ::wapp dict works, try running the previous
 sample program, but extend the /env URL with extra path elements and query
@@ -110,7 +145,7 @@ information from overlapping and overwriting query parameters, all the
 environment information uses upper-case names and all query parameters
 are required to be lower case.  If an input URL contains an upper-case
 query parameter (or POST parameter or cookie), that parameter is silently
-omitted from the ::wapp varidict.
+omitted from the ::wapp dict.
 
 The ::wapp dict contains the following environment values:
 
@@ -189,7 +224,7 @@ The following are additional values add by Wapp:
      useful for filling in the action= attribute of forms.
 
 
-#### 1.2.1 URL Parsing Example
+### 4.1 URL Parsing Example
 
 For the input URL "http://example.com/cgi-bin/script/method/extra/path?q1=5"
 and for a CGI script named "script" in the /cgi-bin/ directory, 
@@ -209,7 +244,8 @@ The first five elements of the example above, HTTP\_HOST through
 QUERY\_STRING, are standard CGI.  The final four elements are Wapp
 extensions.
 
-### 1.3 Additional Wapp Commands
+5.0 Wapp Commands
+-----------------
 
 The following utility commands are available for use by applications built
 on Wapp:
@@ -292,7 +328,8 @@ on Wapp:
      Examine all TCL procedures in the application and report errors about
      unsafe usage of "wapp".
 
-### 1.4 Design Rules
+6.0 Design Rules
+----------------
 
 All global procs and variables used by Wapp begin with the four character
 prefix "wapp".  Procs and variable intended for internal use begin with

@@ -98,10 +98,17 @@ proc wapp-safety-check {} {
 # Start up the wapp framework.  Parameters are a list passed as the
 # single argument.
 #
-#    -port $PORT           Listen on this TCP port
+#    -server $PORT         Listen for HTTP requests on this TCP port $PORT
 #
-#    -mode $MODE           One of "auto" (the default), "cgi", "server"
-#                          or "scgi".
+#    -scgi $PORT           Listen for SCGI requests on TCP port $PORT
+#
+#    -cgi                  Perform a single CGI request
+#
+# With no arguments, the behavior is called "auto".  In "auto" mode,
+# if the GATEWAY_INTERFACE environment variable indicates CGI, then run
+# as CGI.  Otherwise, start an HTTP server bound to the loopback address
+# only, on an arbitrary TCP port, and automatically launch a web browser
+# on that TCP port.
 #
 proc wapp-start {arglist} {
   global env
@@ -112,18 +119,22 @@ proc wapp-start {arglist} {
     set term [lindex $arglist $i]
     if {[string match --* $term]} {set term [string range $term 1 end]}
     switch -- $term {
-      -port {
-         incr i;
-         set port [lindex $arglist $i]
-       }
-      -mode {
-         incr i;
-         set mode [lindex $arglist $i]
-         if {[lsearch {cgi server auto scgi} $mode]<0} {
-           error "--mode should be one of 'cgi', 'server', 'auto', or 'scgi'"
-         }
+      -server {
+        incr i;
+        set mode "server"
+        set port [lindex $arglist $i]
       }
-      default {error "unknown option: $term"}
+      -scgi {
+        incr i;
+        set mode "scgi"
+        set port [lindex $arglist $i]
+      }
+      -cgi {
+        set mode "cgi"
+      }
+      default {
+        error "unknown option: $term"
+      }
     }
   }
   if {($mode=="auto"
