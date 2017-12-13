@@ -8,7 +8,7 @@ Wapp is a lightweight framework that simplifies the
 construction of web application written in TCL. The same Wapp-based
 application can be launched in multiple ways:
 
-  1.  From the command-line, without automatic web-browser startup
+  1.  From the command-line, with automatic web-browser startup
 
   2.  As a stand-alone web server
 
