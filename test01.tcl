@@ -5,9 +5,10 @@ source wapp.tcl
 proc wapp-default {} {
   global wapp
   set B [dict get $wapp BASE_URL]
+  set R [dict get $wapp SCRIPT_NAME]
   wapp "<h1>Hello, World!</h1>\n"
   wapp "<ol>"
-  wapp "<li><p><a href='/env'>Wapp Environment</a></p>\n"
+  wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"
   wapp-unsafe "<li><p><a href='$B/fullenv'>Full Environment</a>\n"
   wapp-unsafe "<li><p><a href='$B/lint'>Lint</a>\n"
   wapp-unsafe "<li><p><a href='$B/errorout'>Deliberate error</a>\n"

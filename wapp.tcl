@@ -130,8 +130,8 @@ proc wapp-start {arglist} {
        && $env(GATEWAY_INTERFACE)=="CGI/1.0")
     || $mode=="cgi"
   } {
-     wappInt-handle-cgi-request
-     return
+    wappInt-handle-cgi-request
+    return
   }
   if {$mode=="server"} {
     wappInt-start-listener $port 0 0
@@ -328,6 +328,11 @@ proc wappInt-handle-request {chan useCgi} {
   } else {
     dict set wapp BASE_URL http://[dict get $wapp HTTP_HOST]
   }
+  if {[dict exists $wapp SCRIPT_NAME]} {
+    dict append wapp BASE_URL [dict get $wapp SCRIPT_NAME]
+  } else {
+    dict set wapp SCRIPT_NAME {}
+  }
   dict set wapp SELF_URL [dict get $wapp BASE_URL]/[dict get $wapp PATH_HEAD]
 
   # Parse query parameters from the query string, the cookies, and
@@ -478,7 +483,7 @@ proc wappInt-url-encode {str} {
 # Process a single CGI request
 #
 proc wappInt-handle-cgi-request {} {
-  global wapp env wappInt-cgi
+  global wapp env
   foreach key {
     CONTENT_LENGTH
     CONTENT_TYPE
