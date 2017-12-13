@@ -1,0 +1,15 @@
+#!/usr/bin/tclsh
+#
+# This script is for testing wapp in CGI mode using the althttpd web-server.
+# This script is contained inside the "default.website" subdirectory.  Let
+# $ROOT be the name of the root of this source archive - the directory that
+# contains "default.website".  Then to start up althttpd for this test
+# run:
+#
+#     althttpd -root $ROOT -port 8080
+#
+# This visit http://localhost:8080/test02 in your web browser
+#
+set ROOT [file dir [file dir [file normalize $env(SCRIPT_FILENAME)]]]
+cd $ROOT
+source test01.tcl

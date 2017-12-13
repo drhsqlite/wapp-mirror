@@ -104,6 +104,7 @@ proc wapp-safety-check {} {
 #                          or "scgi".
 #
 proc wapp-start {arglist} {
+  global env
   set mode auto
   set port 0
   set n [llength $arglist]
