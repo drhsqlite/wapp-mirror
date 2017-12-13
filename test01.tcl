@@ -13,6 +13,9 @@ proc wapp-default {} {
   wapp-unsafe "<li><p><a href='$B/lint'>Lint</a>\n"
   wapp-unsafe "<li><p><a href='$B/errorout'>Deliberate error</a>\n"
   wapp "</ol>"
+  if {[dict exists $wapp showenv]} {
+    wapp-page-env
+  }
 }
 proc wapp-page-env {} {
   global wapp
@@ -45,7 +48,9 @@ proc wapp-page-fullenv {} {
     wapp " checked"
   }
   wapp "> Var1\n"
-  wapp "<input type='submit' value='Go'>\n"
+  wapp "<input type='submit' name='s1' value='Go'>\n"
+  wapp "<input type='hidden' name='hidden-parameter-1' "
+  wapp "value='the long value / of ?$ hidden-1..<hi>'>\n"
   wapp "</form>"
   wapp "<pre>\n"
   foreach var [lsort [dict keys $wapp]] {

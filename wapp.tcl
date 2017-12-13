@@ -145,10 +145,12 @@ proc wapp-start {arglist} {
     wappInt-handle-cgi-request
     return
   }
-  if {$mode=="server"} {
-    wappInt-start-listener $port 0 0
+  if {$mode=="scgi"} {
+    wappInt-start-listener $port 1 0 1
+  } elseif {$mode=="server"} {
+    wappInt-start-listener $port 0 0 0
   } else {
-    wappInt-start-listener $port 1 1
+    wappInt-start-listener $port 1 1 0
   }
   vwait ::forever
 }
@@ -160,18 +162,25 @@ proc wapp-start {arglist} {
 #
 #    browser     -   If true, launch a web browser pointing to the new server
 #
-proc wappInt-start-listener {port localonly browser} {
-  if {$localonly} {
-    set x [socket -server wappInt-new-connection -myaddr 127.0.0.1 $port]
+proc wappInt-start-listener {port localonly browser scgi} {
+  if {$scgi} {
+    set type SCGI
+    set server [list wappInt-new-connection wappInt-scgi-readable]
   } else {
-    set x [socket -server wappInt-new-connection $port]
+    set type HTTP
+    set server [list wappInt-new-connection wappInt-http-readable]
+  }
+  if {$localonly} {
+    set x [socket -server $server -myaddr 127.0.0.1 $port]
+  } else {
+    set x [socket -server $server $port]
   }
   set coninfo [chan configure $x -sockname]
   set port [lindex $coninfo 2]
   if {$browser} {
     wappInt-start-browser http://127.0.0.1:$port/
   } else {
-    puts "Listening for HTTP requests on TCP port $port"
+    puts "Listening for $type requests on TCP port $port"
   }
 }
 
@@ -190,11 +199,11 @@ proc wappInt-start-browser {url} {
 
 # Accept a new inbound HTTP request
 #
-proc wappInt-new-connection {chan ip port} {
+proc wappInt-new-connection {callback chan ip port} {
   upvar #0 wappInt-$chan W
-  set W [dict create REMOTE_HOST $ip:$port .header {}]
+  set W [dict create REMOTE_ADDR $ip REMOTE_PORT $port .header {}]
   fconfigure $chan -blocking 0 -translation binary
-  fileevent $chan readable "wappInt-readable $chan"
+  fileevent $chan readable [list $callback $chan]
 }
 
 # Close an input channel
@@ -211,13 +220,13 @@ proc wappInt-close-channel {chan} {
 
 # Process new text received on an inbound HTTP request
 #
-proc wappInt-readable {chan} {
-  if {[catch [list wappInt-readable-unsafe $chan] msg]} {
+proc wappInt-http-readable {chan} {
+  if {[catch [list wappInt-http-readable-unsafe $chan] msg]} {
     puts stderr "$msg\n$::errorInfo"
     wappInt-close-channel $chan
   }
 }
-proc wappInt-readable-unsafe {chan} {
+proc wappInt-http-readable-unsafe {chan} {
   upvar #0 wappInt-$chan W wapp wapp
   if {![dict exists $W .toread]} {
     # If the .toread key is not set, that means we are still reading
@@ -320,19 +329,6 @@ proc wappInt-handle-request {chan useCgi} {
 
   # Set up additional CGI environment values
   #
-  if {![dict exists $wapp REQUEST_URI]} {
-    dict set wapp REQUEST_URI /
-  }
-  if {[dict exists $wapp PATH_INFO]
-   && [regexp {^/([^/]+)(.*)$} [dict get $wapp PATH_INFO] all head tail]
-  } {
-    dict set wapp PATH_HEAD $head
-    dict set wapp PATH_TAIL [string trimleft $tail /]
-  } else {
-    dict set wapp PATH_INFO {}
-    dict set wapp PATH_HEAD {}
-    dict set wapp PATH_TAIL {}
-  }
   if {![dict exists $wapp HTTP_HOST]} {
     dict set wapp BASE_URL {}
   } elseif {[dict exists $wapp HTTPS]} {
@@ -340,10 +336,31 @@ proc wappInt-handle-request {chan useCgi} {
   } else {
     dict set wapp BASE_URL http://[dict get $wapp HTTP_HOST]
   }
+  if {![dict exists $wapp REQUEST_URI]} {
+    dict set wapp REQUEST_URI /
+  } elseif {[regsub {\?.*} [dict get $wapp REQUEST_URI] {} newR]} {
+    # Some servers (ex: nginx) append the query parameters to REQUEST_URI.
+    # These need to be stripped off
+    dict set wapp REQUEST_URI $newR
+  }
   if {[dict exists $wapp SCRIPT_NAME]} {
     dict append wapp BASE_URL [dict get $wapp SCRIPT_NAME]
   } else {
     dict set wapp SCRIPT_NAME {}
+  }
+  if {![dict exists $wapp PATH_INFO]} {
+    # If PATH_INFO is missing (ex: nginx) the construct it
+    set URI [dict get $wapp REQUEST_URI]
+    set skip [string length [dict get $wapp SCRIPT_NAME]]
+    dict set wapp PATH_INFO [string range $URI $skip end]
+  }
+  if {[regexp {^/([^/]+)(.*)$} [dict get $wapp PATH_INFO] all head tail]} {
+    dict set wapp PATH_HEAD $head
+    dict set wapp PATH_TAIL [string trimleft $tail /]
+  } else {
+    dict set wapp PATH_INFO {}
+    dict set wapp PATH_HEAD {}
+    dict set wapp PATH_TAIL {}
   }
   dict set wapp SELF_URL [dict get $wapp BASE_URL]/[dict get $wapp PATH_HEAD]
 
@@ -380,7 +397,7 @@ proc wappInt-handle-request {chan useCgi} {
     foreach qterm [split [string trim [dict get $wapp CONTENT]] &] {
       set qsplit [split $qterm =]
       set nm [lindex $qsplit 0]
-      if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
+      if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
         dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
       }
     }
@@ -527,4 +544,56 @@ proc wappInt-handle-cgi-request {} {
     dict set wapp CONTENT [read stdin $len]
   }
   wappInt-handle-request stdout 1
+}
+
+# Process new text received on an inbound SCGI request
+#
+proc wappInt-scgi-readable {chan} {
+  if {[catch [list wappInt-scgi-readable-unsafe $chan] msg]} {
+    puts stderr "$msg\n$::errorInfo"
+    wappInt-close-channel $chan
+  }
+}
+proc wappInt-scgi-readable-unsafe {chan} {
+  upvar #0 wappInt-$chan W wapp wapp
+  if {![dict exists $W .toread]} {
+    # If the .toread key is not set, that means we are still reading
+    # the header.
+    #
+    # An SGI header is short.  This implementation assumes the entire
+    # header is available all at once.
+    #
+    set req [read $chan 15]
+    set n [string length $req]
+    scan $req %d:%s len hdr
+    incr len [string length "$len:,"]
+    append hdr [read $chan [expr {$len-15}]]
+    foreach {nm val} [split $hdr \000] {
+      if {$nm==","} break
+      dict set W $nm $val
+    }
+    set len 0
+    if {[dict exists $W CONTENT_LENGTH]} {
+      set len [dict get $W CONTENT_LENGTH]
+    }
+    if {$len>0} {
+      # Still need to read the query content
+      dict set W .toread $len
+    } else {
+      # There is no query content, so handle the request immediately
+      set wapp $W
+      wappInt-handle-request $chan 0
+    }
+  } else {
+    # If .toread is set, that means we are reading the query content.
+    # Continue reading until .toread reaches zero.
+    set got [read $chan [dict get $W .toread]]
+    dict append W CONTENT $got
+    dict set W .toread [expr {[dict get $W .toread]-[string length $got]}]
+    if {[dict get $W .toread]<=0} {
+      # Handle the request as soon as all the query content is received
+      set wapp $W
+      wappInt-handle-request $chan 0
+    }
+  }
 }
