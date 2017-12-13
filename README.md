@@ -104,30 +104,39 @@ and cookies - they are all converted into entries in the ::wapp dict
 variable so that the parameters are easily accessible to page generation
 procedures.
 
-The ::wapp variable contains additional information about the request,
+The ::wapp dict contains additional information about the request,
 roughly corresponding to CGI environment variables.  To prevent environment
 information from overlapping and overwriting query parameters, all the
 environment information uses upper-case names and all query parameters
 are required to be lower case.  If an input URL contains an upper-case
 query parameter (or POST parameter or cookie), that parameter is silently
-omitted from the ::wapp variable
+omitted from the ::wapp varidict.
 
-The ::wapp variable contains the following environment values:
+The ::wapp dict contains the following environment values:
 
   +  **HTTP\_HOST**  
      The hostname (or IP address) and port that the client used to create
-     the current HTTP request.  This is the first part of the request URL.
+     the current HTTP request.  This is the first part of the request URL,
+     right after the "http://" or "https://".  The format for this value
+     is "HOST:PORT".  Examples:  "sqlite.org:80" or "127.0.0.1:32172".
 
   +  **HTTP\_USER\_AGENT**  
      The name of the web-browser or other client program that generated
      the current HTTP request.
 
+  +  **HTTP\_COOKIE**  
+     The values of all cookies in the HTTP header
+
   +  **HTTPS**  
-     If the HTTP request arrived of SSL, then this variable has the value "on".
-     For an unencrypted request, the variable does not exist.
+     If the HTTP request arrived of SSL (via "https://"), then this variable
+     has the value "on".  For an unencrypted request ("http://"), this
+     variable does not exist.
 
   +  **REMOTE\_ADDR**  
-     The IP address and port from which the HTTP request originated.
+     The IP address from which the HTTP request originated.
+
+  +  **REMOTE\_PORT**  
+     The TCP port from which teh HTTP request originated.
 
   +  **SCRIPT_NAME**  
      In CGI mode, this is the name of the CGI script in the URL.  In other
@@ -137,7 +146,7 @@ The ::wapp variable contains the following environment values:
   +  **PATH\_INFO**  
      The part of the URL path that follows the SCRIPT\_NAME.  For all modes
      other than CGI, this is exactly the URL pathname, though with the
-     query parameters removed.  PATH_INFO begins with a "/"
+     query parameters removed.  PATH_INFO begins with a "/".
 
   +  **REQUEST\_URI**  
      The URL for the inbound request, without the initial "http://" or
@@ -153,6 +162,11 @@ The ::wapp variable contains the following environment values:
   *  **CONTENT\_TYPE**  
      The mimetype of the POST data.  Usually this is
      application/x-www-form-urlencoded.
+
+
+All of the above are standard CGI environment values.
+The following are additional values add by Wapp:
+
 
   *  **CONTENT**  
      The raw POST data text.
@@ -173,7 +187,27 @@ The ::wapp variable contains the following environment values:
   +  **SELF\_URL**  
      The URL for the current page, stripped of query parameter. This is
      useful for filling in the action= attribute of forms.
- 
+
+
+#### 1.2.1 URL Parsing Example
+
+For the input URL "http://example.com/cgi-bin/script/method/extra/path?q1=5"
+and for a CGI script named "script" in the /cgi-bin/ directory, 
+the following CGI environment values are generated:
+
+  +  **HTTP\_HOST** &rarr; "example.com:80"
+  +  **SCRIPT\_NAME** &rarr; "/cgi-bin/script"
+  +  **PATH\_INFO** &rarr; "/method/extra/path"
+  +  **REQUEST\_URI** &rarr; "/cgi-bin/script/method/extra/path"
+  +  **QUERY\_STRING** &rarr; "q1=5"
+  +  **BASE\_URL** &rarr; "http://example.com/cgi-bin/script"
+  +  **SELF\_URL** &rarr; "http://example.com/cgi-bin/script/method"
+  +  **PATH\_HEAD** &rarr; "method"
+  +  **PATH\_TAIL** &rarr; "extra/path"
+
+The first five elements of the example above, HTTP\_HOST through
+QUERY\_STRING, are standard CGI.  The final four elements are Wapp
+extensions.
 
 ### 1.3 Additional Wapp Commands
 

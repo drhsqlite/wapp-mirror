@@ -188,8 +188,13 @@ proc wappInt-new-connection {chan ip port} {
 # Close an input channel
 #
 proc wappInt-close-channel {chan} {
-  unset ::wappInt-$chan
-  close $chan
+  if {$chan=="stdout"} {
+    # This happens after completing a CGI request
+    exit 0
+  } else {
+    unset ::wappInt-$chan
+    close $chan
+  }
 }
 
 # Process new text received on an inbound HTTP request
@@ -201,7 +206,7 @@ proc wappInt-readable {chan} {
   }
 }
 proc wappInt-readable-unsafe {chan} {
-  upvar #0 wappInt-$chan W
+  upvar #0 wappInt-$chan W wapp wapp
   if {![dict exists $W .toread]} {
     # If the .toread key is not set, that means we are still reading
     # the header
@@ -217,15 +222,19 @@ proc wappInt-readable-unsafe {chan} {
         error "HTTP request header too big - possible DOS attack"
       }
     } elseif {$n==0} {
+      # We have reached the blank line that terminates the header.
       wappInt-parse-header $chan
       set len 0
       if {[dict exists $W CONTENT_LENGTH]} {
         set len [dict get $W CONTENT_LENGTH]
       }
       if {$len>0} {
+        # Still need to read the query content
         dict set W .toread $len
       } else {
-        wappInt-handle-request $chan
+        # There is no query content, so handle the request immediately
+        set wapp $W
+        wappInt-handle-request $chan 0
       }
     }
   } else {
@@ -235,8 +244,9 @@ proc wappInt-readable-unsafe {chan} {
     dict append W CONTENT $got
     dict set W .toread [expr {[dict get $W .toread]-[string length $got]}]
     if {[dict get $W .toread]<=0} {
-      wappInt-parse-post-data $chan
-      wappInt-handle-request $chan
+      # Handle the request as soon as all the query content is received
+      set wapp $W
+      wappInt-handle-request $chan 0
     }
   }
 }
@@ -264,20 +274,6 @@ proc wappInt-parse-header {chan} {
   dict set W PATH_INFO $uri0
   set uri1 [lindex $split_uri 1]
   dict set W QUERY_STRING $uri1
-  foreach qterm [split $uri1 &] {
-    set qsplit [split $qterm =]
-    set nm [lindex $qsplit 0]
-    if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
-      dict set W $nm [wappInt-url-decode [lindex $qsplit 1]]
-    }
-  }
-  if {[regexp {^/([^/]+)(.*)$} $uri0 all head tail]} {
-    dict set W PATH_HEAD $head
-    dict set W PATH_TAIL $tail
-  } else {
-    dict set W PATH_HEAD {}
-    dict set W PATH_TAIL {}
-  }
   set n [llength $hdr]
   for {set i 1} {$i<$n} {incr i} {
     set x [lindex $hdr $i]
@@ -286,31 +282,15 @@ proc wappInt-parse-header {chan} {
     }
     set name [string toupper $name]
     switch -- $name {
-      REFERER {}
+      REFERER {set name HTTP_REFERER}
       USER-AGENT {set name HTTP_USER_AGENT}
       CONTENT-LENGTH {set name CONTENT_LENGTH}
       CONTENT-TYPE {set name CONTENT_TYPE}
       HOST {set name HTTP_HOST}
+      COOKIE {set name HTTP_COOKIE}
       default {set name .hdr:$name}
     }
     dict set W $name $value
-  }
-  if {![dict exists $W HTTP_HOST]} {
-    dict set W BASE_URL {}
-  } elseif {[dict exists $W HTTPS]} {
-    dict set W BASE_URL https://[dict get $W HTTP_HOST]
-  } else {
-    dict set W BASE_URL http://[dict get $W HTTP_HOST]
-  }
-  dict set W SELF_URL [dict get $W BASE_URL]/[dict get $W PATH_HEAD]
-  if {[dict exists $W .hdr:COOKIE]} {
-    foreach qterm [split [dict get $W .hdr:COOKIE] {;}] {
-      set qsplit [split [string trim $qterm] =]
-      set nm [lindex $qsplit 0]
-      if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
-        dict set W $nm [wappInt-url-decode [lindex $qsplit 1]]
-      }
-    }
   }
 }
 
@@ -320,12 +300,83 @@ proc wappInt-parse-header {chan} {
 # This routine always runs within [catch], so handle exceptions by
 # invoking [error].
 #
-proc wappInt-handle-request {chan} {
-  upvar #0 wappInt-$chan W wapp wapp
-  set wapp $W
+proc wappInt-handle-request {chan useCgi} {
+  global wapp
   dict set wapp .reply {}
   dict set wapp .mimetype {text/html; charset=utf-8}
   dict set wapp .reply-code {200 Ok}
+
+  # Set up additional CGI environment values
+  #
+  if {![dict exists $wapp REQUEST_URI]} {
+    dict set wapp REQUEST_URI /
+  }
+  if {[dict exists $wapp PATH_INFO]
+   && [regexp {^/([^/]+)(.*)$} [dict get $wapp PATH_INFO] all head tail]
+  } {
+    dict set wapp PATH_HEAD $head
+    dict set wapp PATH_TAIL [string trimleft $tail /]
+  } else {
+    dict set wapp PATH_INFO {}
+    dict set wapp PATH_HEAD {}
+    dict set wapp PATH_TAIL {}
+  }
+  if {![dict exists $wapp HTTP_HOST]} {
+    dict set wapp BASE_URL {}
+  } elseif {[dict exists $wapp HTTPS]} {
+    dict set wapp BASE_URL https://[dict get $wapp HTTP_HOST]
+  } else {
+    dict set wapp BASE_URL http://[dict get $wapp HTTP_HOST]
+  }
+  dict set wapp SELF_URL [dict get $wapp BASE_URL]/[dict get $wapp PATH_HEAD]
+
+  # Parse query parameters from the query string, the cookies, and
+  # POST data
+  #
+  if {[dict exists $wapp HTTP_COOKIE]} {
+    foreach qterm [split [dict get $wapp HTTP_COOKIE] {;}] {
+      set qsplit [split [string trim $qterm] =]
+      set nm [lindex $qsplit 0]
+      if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
+        dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
+      }
+    }
+  }
+  if {[dict exists $wapp QUERY_STRING]} {
+    foreach qterm [split [dict get $wapp QUERY_STRING] &] {
+      set qsplit [split $qterm =]
+      set nm [lindex $qsplit 0]
+      if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
+        dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
+      }
+    }
+  }
+  # POST data is only decoded if the HTTP_REFERER is from the same
+  # application, as a defense against Cross-Site Request Forgery (CSRF)
+  # attacks.
+  if {[dict exists $wapp CONTENT_TYPE]
+   && [dict get $wapp CONTENT_TYPE]=="application/x-www-form-urlencoded"
+   && [dict exists $wapp CONTENT]
+   && [dict exists $wapp HTTP_REFERER]
+   && [string match [dict get $wapp BASE_URL]/* [dict get $wapp HTTP_REFERER]]
+  } {
+    foreach qterm [split [string trim [dict get $wapp CONTENT]] &] {
+      set qsplit [split $qterm =]
+      set nm [lindex $qsplit 0]
+      if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
+        dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
+      }
+    }
+  }
+  # To-Do:  Perhaps add support for multipart/form-data decoding.
+  # Alternatively, perhaps multipart/form-data decoding can be done
+  # by application code using a separate helper function, like
+  # "wapp_decode_multipart_formdata" or somesuch.
+
+  # Invoke the application-defined handler procedure for this page
+  # request.  If an error occurs while running that procedure, generate
+  # an HTTP reply that contains the error message.
+  #
   set mname [dict get $wapp PATH_HEAD]
   if {[catch {
     if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
@@ -343,9 +394,17 @@ proc wappInt-handle-request {chan} {
     wapp "</pre>\n"
     dict unset wapp .new-cookies
   }
-  puts $chan "HTTP/1.0 [dict get $wapp .reply-code]\r"
-  puts $chan "Server: wapp\r"
-  puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
+
+  # Transmit the HTTP reply
+  #
+  if {$chan=="stdout"} {
+    puts $chan "Status: [dict get $wapp .reply-code]\r"
+  } else {
+    puts $chan "HTTP/1.0 [dict get $wapp .reply-code]\r"
+    puts $chan "Server: wapp\r"
+    puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
+    puts $chan "Connection: Closed\r"
+  }
   puts $chan "Content-Type: [dict get $wapp .mimetype]\r"
   if {[dict exists $wapp .new-cookies]} {
     foreach {nm val} [dict get $wapp .new-cookies] {
@@ -355,7 +414,7 @@ proc wappInt-handle-request {chan} {
       }
     }
   }
-  puts $chan "Connection: Closed\r\n\r"
+  puts $chan "\r"
   puts $chan [dict get $wapp .reply]
   flush $chan
   wappInt-close-channel $chan
@@ -375,30 +434,6 @@ proc wappInt-url-decode {str} {
       $str {[encoding convertfrom utf-8 [DecodeHex \1\2]]} str
   regsub -all -- {%([0-7][A-Fa-f0-9])} $str {\\u00\1} str
   return [subst -novar $str]
-}
-
-# Process POST data.
-#
-# As a defense against Cross-Site Request Forgeries, POST data is ignored
-# if the REFERER is not within the BASE_URL.
-#
-proc wappInt-parse-post-data {chan} {
-  upvar #0 wappInt-$chan W
-  if {[dict exists $W CONTENT_TYPE]
-   && [dict get $W CONTENT_TYPE]=="application/x-www-form-urlencoded"
-   && [dict exists $W REFERER]
-   && [string match [dict get $W BASE_URL]/* [dict get $W REFERER]]
-  } {
-    foreach qterm [split [string trim [dict get $W CONTENT]] &] {
-      set qsplit [split $qterm =]
-      set nm [lindex $qsplit 0]
-      if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
-        dict set W $nm [wappInt-url-decode [lindex $qsplit 1]]
-      }
-    }
-    return
-  }
-  # TODO: Decode multipart/form-data
 }
 
 # Data for doing url-encoding.
@@ -438,4 +473,41 @@ proc wappInt-url-encode {str} {
   regsub -all -- \[^a-zA-Z0-9\] $str {$map(&)} str
   regsub -all -- {[][{})\\]\)} $str {\\&} str
   return [subst -nocommand $str]
+}
+
+# Process a single CGI request
+#
+proc wappInt-handle-cgi-request {} {
+  global wapp env wappInt-cgi
+  foreach key {
+    CONTENT_LENGTH
+    CONTENT_TYPE
+    HTTP_COOKIE
+    HTTP_HOST
+    HTTP_REFERER
+    HTTP_USER_AGENT
+    PATH_INFO
+    QUERY_STRING
+    REMOTE_ADDR
+    REQUEST_METHOD
+    REQUEST_URI
+    REMOTE_USER
+    SCRIPT_NAME
+    SERVER_NAME
+    SERVER_PORT
+    SERVER_PROTOCOL
+  } {
+    if {[info exists env($key)]} {
+      dict set wapp $key $env($key)
+    }
+  }
+  set len 0
+  if {[dict exists $wapp CONTENT_LENGTH]} {
+    set len [dict get $wapp CONTENT_LENGTH]
+  }
+  if {$len>0} {
+    fconfigure stdin -translation binary
+    dict set wapp CONTENT [read stdin $len]
+  }
+  wappInt-handle-request stdout 1
 }
