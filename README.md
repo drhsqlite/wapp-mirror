@@ -4,14 +4,11 @@ Wapp - A Web-Application Framework for TCL
 1.0 Introduction
 ----------------
 
-Wapp is a lightweight framework that strives to simplify the
+Wapp is a lightweight framework that simplifies the
 construction of web application written in TCL. The same Wapp-based
 application can be launched in multiple ways:
 
-  1.  From the command-line (ex: "<tt>tclsh app.tcl</tt>").  In this mode,
-      The wapp finds an available TCL port on localhost, starts an
-      in-process web server listening on that port, and then launches the 
-      users default web browser directed at localhost:$port
+  1.  From the command-line, without automatic web-browser startup
 
   2.  As a stand-alone web server
 
@@ -19,7 +16,7 @@ application can be launched in multiple ways:
 
   4.  As an SCGI program
 
-All four methods use the same application code and present the same
+All four methods use the exact same application code and present the same
 interface to the application user.  An application can be developed on
 the desktop using stand-alone mode (1), then deployed as a stand-alone
 server (2), or a CGI script (3), or as an SCGI program (4).
@@ -30,7 +27,7 @@ server (2), or a CGI script (3), or as an SCGI program (4).
 Wapp is designed to be easy to use.  A hello-world program is as follows:
 
 >
-    package require wapp
+    package require wapp  ;# OR source wapp.tcl
     proc wapp-default {req} {
        wapp "<h1>Hello, World!</h1>\n"
     }
@@ -119,7 +116,7 @@ warning if its argument contains TCL variable or command expansions, as a
 defense against accidental XSS vulnerabilities.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
-generates an HTML that describes the content of the ::wapp dict.
+generates HTML that describes the content of the ::wapp dict.
 Keys that begin with "." are for internal use by Wapp and are skipped
 for this display. The "wapp-escape-html"
 command is like "wapp" and "wapp-unsafe" except that "wapp-escape-html"
@@ -289,6 +286,13 @@ on Wapp:
   +  **wapp-set-cookie** \[-path _PATH_\] \[-expires _DAYS_\] _NAME_ _VALUE_  
      Cause the cookie _NAME_ to be set to _VALUE_.
 
+  *  **wapp-safety-check**  
+     Examine all TCL procedures in the application and report errors about
+     unsafe usage of "wapp".
+
+The following additional interfaces are envisioned, but are not yet
+implemented:
+
   +  **wapp-send-hex** _HEX_  
      Cause the HTTP reply to be binary that is constructed from the
      hexadecimal text in the _HEX_ argument.  Whitespace in _HEX_ is ignored.
@@ -323,10 +327,6 @@ on Wapp:
      command is a no-op for short-lived CGI programs, obviously.  Also, this
      command should only be used during debugging, as otherwise it introduces
      a severe security vulnerability into the application.
-
-  *  **wapp-safety-check**  
-     Examine all TCL procedures in the application and report errors about
-     unsafe usage of "wapp".
 
 6.0 Design Rules
 ----------------

@@ -597,3 +597,6 @@ proc wappInt-scgi-readable-unsafe {chan} {
     }
   }
 }
+
+# Call this version 1.0
+package provide wapp 1.0
