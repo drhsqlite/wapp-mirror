@@ -9,9 +9,12 @@ proc wapp-default {} {
   wapp "<h1>Hello, World!</h1>\n"
   wapp "<ol>"
   wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"
-  wapp-unsafe "<li><p><a href='$B/fullenv'>Full Environment</a>\n"
-  wapp-unsafe "<li><p><a href='$B/lint'>Lint</a>\n"
-  wapp-unsafe "<li><p><a href='$B/errorout'>Deliberate error</a>\n"
+  wapp-subst {<li><p><a href='%html($B)/fullenv'>Full Environment</a>\n}
+  set crazy [lsort [dict keys $wapp]]
+  wapp-subst {<li><p><a href='%html($B)/env?keys=%url($crazy)'>}
+  wapp "Environment with crazy URL\n"
+  wapp-subst {<li><p><a href='%html($B)/lint'>Lint</a>\n}
+  wapp-subst {<li><p><a href='%html($B)/errorout'>Deliberate error</a>\n}
   wapp "</ol>"
   if {[dict exists $wapp showenv]} {
     wapp-page-env
@@ -58,7 +61,7 @@ proc wapp-page-fullenv {} {
     wapp-escape-html "$var = [list [dict get $wapp $var]]\n\n"
   }
   wapp "</pre>"
-  wapp-unsafe "<p><a href='[dict get $wapp BASE_URL]/'>Home</a></p>\n"
+  wapp-subst {<p><a href='%html([dict get $wapp BASE_URL])/'>Home</a></p>\n}
 }
 proc wapp-page-lint {} {
   wapp "<h1>Potental Cross-Site Injection Vulerabilities In This App</h1>\n"

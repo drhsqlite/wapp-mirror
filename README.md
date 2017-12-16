@@ -92,7 +92,8 @@ available in ::wapp.
     proc wapp-default {} {
       global wapp
       wapp "<h1>Hello, World!</h1>\n"
-      wapp-unsafe "<p>See the <a href='[dict get $wapp BASE_URL]/env'>Wapp "
+      set B [dict get $wapp BASE_URL]
+      wapp-subst {<p>See the <a href='%html($B)/env'>Wapp }
       wapp "Environment</a></p>"
     }
     proc wapp-page-env {} {
@@ -101,26 +102,27 @@ available in ::wapp.
       wapp "<pre>\n"
       foreach var [lsort [dict keys $wapp]] {
         if {[string index $var 0]=="."} continue
-        wapp-escape-html "$var = [list [dict get $wapp $var]]\n"
+        wapp-subst {%html($var) = %html([list [dict get $wapp $var]])\n}
       }
       wapp "</pre>"
     }
     wapp-start $::argv
 
 In this application, the default "Hello, World!" page has been extended
-with a hyperlink to the /env page.  The "wapp-unsafe" command works exactly
-the same as "wapp" (it appends its argument text to the web page under
-construction) except that the argument to "wapp-unsafe" is allowed to contain
-TCL variable and command expansions.  The "wapp" command will generate a
-warning if its argument contains TCL variable or command expansions, as a
-defense against accidental XSS vulnerabilities.
+with a hyperlink to the /env page.  The "wapp-subst" command works like "wapp"
+in that it appends its argument text to the web page under construction.
+But "wapp-subst" also does safe substitutions of text.  Within the "wapp-subst"
+argument, "%html(...)" is replaced by the expansion of "..." which has been
+escaped for safe inclusion in HTML text.  Similarly, "%url(...)" is replaced
+by "..." after it has been expanded and escaped for use as a URL query
+parameter.  The argument to "wapp-subst" should always be enclosed in
+{...}.  Backslash substitutions are performed automatically.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
 generates HTML that describes the content of the ::wapp dict.
 Keys that begin with "." are for internal use by Wapp and are skipped
-for this display. The "wapp-escape-html"
-command is like "wapp" and "wapp-unsafe" except that "wapp-escape-html"
-escapes HTML markup so that it displays correctly in the output.
+for this display.  Notice the use of "wapp-subst" to safely escape text
+for inclusion in an HTML document.
 
 4.0 The ::wapp Global Dict
 --------------------------
@@ -256,20 +258,12 @@ on Wapp:
      Add _TEXT_ to the web page output currently under construction.  _TEXT_
      must not contain any TCL variable or command substitutions.
 
-  +  **wapp-unsafe** _TEXT_  
-     Add _TEXT_ to the web page under construction even though _TEXT_ does
-     contain TCL variable and command substitutions.  The application developer
-     must ensure that the variable and command substitutions does not allow
-     XSS attacks.
-
-  +  **wapp-encode-html** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     HTML markup contained with _TEXT_.
-
-  +  **wapp-encode-url** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     characters so that the result is safe to include as the value of a
-     query parameter on a URL.
+  +  **wapp-subst** _TEXT_  
+     The _TEXT_ argument should be enclosed in {...} to prevent substitutions.
+     The "wapp-subst" command itself will do all necessary backslash
+     substitutions.  Command and variable substitutions only occur within
+     "%html(...)" and "%url(...)" and the results are safely escaped for
+     inclusion in the body of an HTML document or as a query parameter.
 
   +  **wapp-mimetype** _MIMETYPE_  
      Set the MIME-type for the generated web page.  The default is "text/html".
@@ -289,6 +283,26 @@ on Wapp:
   *  **wapp-safety-check**  
      Examine all TCL procedures in the application and report errors about
      unsafe usage of "wapp".
+
+  +  **wapp-unsafe** _TEXT_  
+     Add _TEXT_ to the web page under construction even though _TEXT_ does
+     contain TCL variable and command substitutions.  The application developer
+     must ensure that the variable and command substitutions does not allow
+     XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
+     preferred in most situations.
+
+  +  **wapp-encode-html** _TEXT_  
+     Add _TEXT_ to the web page under construction after first escaping any
+     HTML markup contained with _TEXT_.  This command is equivalent to
+     "wapp-subst {%html(_TEXT_)}".
+
+
+  +  **wapp-encode-url** _TEXT_  
+     Add _TEXT_ to the web page under construction after first escaping any
+     characters so that the result is safe to include as the value of a
+     query parameter on a URL.  This command is equivalent to
+     "wapp-subst {%url(_TEXT_)}".
+
 
 The following additional interfaces are envisioned, but are not yet
 implemented:

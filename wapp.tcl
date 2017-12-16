@@ -30,7 +30,12 @@ proc wapp-unsafe {txt} {
   dict append wapp .reply $txt
 }
 
-# Append text after escaping it for HTML
+# Append text after escaping it for HTML.
+#
+# The following commands are the same:
+#
+#      wapp-escape-html TEXT
+#      wapp-subst %html(TEXT)
 #
 proc wapp-escape-html {txt} {
   global wapp
@@ -39,9 +44,29 @@ proc wapp-escape-html {txt} {
 
 # Append text after escaping it for URL query parameters.
 #
+# The following commands are the same:
+#
+#      wapp-escape-url TEXT
+#      wapp-subst %url(TEXT)
+#
 proc wapp-escape-url {txt} {
   global wapp
-  dict append wapp .reply [wappInt-url-encode $txt]
+  dict append wapp .reply [wappInt-enc-url $txt]
+}
+
+# The argument should be in {...}.  Substitions of %html(...) encode ...
+# escaped for safe insertion into HTML.  %url(...) substitions encode the
+# argument for safe insertion into query parameters of URLs.  Backslash
+# substitutions are also performed, but variable substitutions are not,
+# except within %html() and %url().
+#
+proc wapp-subst {txt} {
+  global wapp
+  regsub -all -- {%(html|url)\(([^)]+)\)} $txt {[wappInt-enc-\1 "\2"]} txt
+  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+}
+proc wappInt-enc-html {txt} {
+  return [string map {& &amp; < &lt; > &gt;} $txt]
 }
 
 # Reset the document back to an empty string.
@@ -89,6 +114,9 @@ proc wapp-safety-check {} {
        && [regexp {[[$]} $tail]
       } {
         append res "$p:$ln: unsafe \"wapp\" call: \"[string trim $x]\"\n"
+      }
+      if {[regexp {^[ \t]*wapp-subst[ \t]+[^\173]} $x]} {
+        append res "$p:$ln: unsafe \"wapp-subst\" call: \"[string trim $x]\"\n"
       }
     }
   }
@@ -372,7 +400,7 @@ proc wappInt-handle-request {chan useCgi} {
       set qsplit [split [string trim $qterm] =]
       set nm [lindex $qsplit 0]
       if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
-        dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
+        dict set wapp $nm [wappInt-decode-url [lindex $qsplit 1]]
       }
     }
   }
@@ -381,7 +409,7 @@ proc wappInt-handle-request {chan useCgi} {
       set qsplit [split $qterm =]
       set nm [lindex $qsplit 0]
       if {[regexp {^[a-z][a-z0-9]*$} $nm]} {
-        dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
+        dict set wapp $nm [wappInt-decode-url [lindex $qsplit 1]]
       }
     }
   }
@@ -398,7 +426,7 @@ proc wappInt-handle-request {chan useCgi} {
       set qsplit [split $qterm =]
       set nm [lindex $qsplit 0]
       if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
-        dict set wapp $nm [wappInt-url-decode [lindex $qsplit 1]]
+        dict set wapp $nm [wappInt-decode-url [lindex $qsplit 1]]
       }
     }
   }
@@ -443,7 +471,7 @@ proc wappInt-handle-request {chan useCgi} {
   if {[dict exists $wapp .new-cookies]} {
     foreach {nm val} [dict get $wapp .new-cookies] {
       if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
-        set val [wappInt-url-encode $val]
+        set val [wappInt-enc-url $val]
         puts $chan "Set-Cookie: $nm=$val; HttpOnly; Path=/\r"
       }
     }
@@ -458,7 +486,7 @@ proc wappInt-handle-request {chan useCgi} {
 #
 # HT: This code stolen from ncgi.tcl
 #
-proc wappInt-url-decode {str} {
+proc wappInt-decode-url {str} {
   set str [string map [list + { } "\\" "\\\\" \[ \\\[ \] \\\]] $str]
   regsub -all -- \
       {%([Ee][A-Fa-f0-9])%([89ABab][A-Fa-f0-9])%([89ABab][A-Fa-f0-9])} \
@@ -502,7 +530,7 @@ array set wappInt-map {
 
 # Do URL encoding
 #
-proc wappInt-url-encode {str} {
+proc wappInt-enc-url {str} {
   upvar #0 wappInt-map map
   regsub -all -- \[^a-zA-Z0-9\] $str {$map(&)} str
   regsub -all -- {[][{})\\]\)} $str {\\&} str
