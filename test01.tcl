@@ -15,6 +15,7 @@ proc wapp-default {} {
   wapp "Environment with crazy URL\n"
   wapp-subst {<li><p><a href='%html($B)/lint'>Lint</a>\n}
   wapp-subst {<li><p><a href='%html($B)/errorout'>Deliberate error</a>\n}
+  wapp-subst {<li><p><a href='%html($B)/encodings'>Encoding checks</a>\n}
   wapp "</ol>"
   if {[dict exists $wapp showenv]} {
     wapp-page-env
@@ -74,7 +75,38 @@ proc wapp-page-lint {} {
     wapp "</pre>\n"
   }
 }
+proc wapp-page-encodings {} {
+  set strlist {
+     {Johann Strauß}
+     {Вагиф Сәмәдоғлу}
+     {中国}
+     {$[hi]{there}$}
+     {https://drh@sqlite.org/info?name=trunk#block2}
+  }
+  wapp-subst {
+     <h1>Test the %qp substitutions</h1>
+     <table border=1 cellpadding=5>
+     <tr><th>Original<th>Encoded<th>Round-Trip</tr>
+  }
+  foreach str $strlist {
+    wapp-subst {<tr><td>%unsafe($str)<td>%qp($str)}
+    set x [wappInt-decode-url [wappInt-enc-qp $str]]
+    wapp-subst {<td>%unsafe($x)</tr>\n}
+  }
+  wapp-subst {</table>}
 
+  wapp-subst {
+     <h1>Test the %url substitutions</h1>
+     <table border=1 cellpadding=5>
+     <tr><th>Original<th>Encoded<th>Round-Trip</tr>
+  }
+  foreach str $strlist {
+    wapp-subst {<tr><td>%unsafe($str)<td>%url($str)}
+    set x [wappInt-decode-url [wappInt-enc-url $str]]
+    wapp-subst {<td>%unsafe($x)</tr>\n}
+  }
+  wapp-subst {</table>}
+}
 # Deliberately generate an error to test error handling.
 proc wapp-page-errorout {} {
   wapp "<h1>Intentially generate an error</h1>\n"

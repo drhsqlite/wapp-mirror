@@ -29,7 +29,7 @@ Wapp is designed to be easy to use.  A hello-world program is as follows:
 >
     package require wapp  ;# OR source wapp.tcl
     proc wapp-default {req} {
-       wapp "<h1>Hello, World!</h1>\n"
+       wapp-subst {<h1>Hello, World!</h1>\n}
     }
     wapp-start $::argv
 
@@ -40,8 +40,10 @@ procedure named "wapp-page-abcde" will be invoked to construct the reply.
 If no such procedure exists, "wapp-default" is invoked instead.  The latter
 technique is used for the hello-world example above.
 
-The procedure generates a reply using one or more calls to the "wapp"
-command.  Each "wapp" command appends new text to the reply.
+The procedure generates a reply using one or more calls to the "wapp-subst"
+command.  Each "wapp-subst" command appends new text to the reply, applying
+various substitutions as it goes.  The only substitution in this example is
+the \n at the end of the line.
 
 The "wapp-start" command starts up the application.
 
@@ -91,32 +93,30 @@ available in ::wapp.
     package require wapp
     proc wapp-default {} {
       global wapp
-      wapp "<h1>Hello, World!</h1>\n"
+      wapp-subst {<h1>Hello, World!</h1>\n}
       set B [dict get $wapp BASE_URL]
       wapp-subst {<p>See the <a href='%html($B)/env'>Wapp }
-      wapp "Environment</a></p>"
+      wapp-subst {Environment</a></p>\n}
     }
     proc wapp-page-env {} {
       global wapp
-      wapp "<h1>Wapp Environment</h1>\n"
-      wapp "<pre>\n"
+      wapp-subst {<h1>Wapp Environment</h1>\n<pre>\n}
       foreach var [lsort [dict keys $wapp]] {
         if {[string index $var 0]=="."} continue
         wapp-subst {%html($var) = %html([list [dict get $wapp $var]])\n}
       }
-      wapp "</pre>"
+      wapp-subst {</pre>\n}
     }
     wapp-start $::argv
 
 In this application, the default "Hello, World!" page has been extended
-with a hyperlink to the /env page.  The "wapp-subst" command works like "wapp"
-in that it appends its argument text to the web page under construction.
-But "wapp-subst" also does safe substitutions of text.  Within the "wapp-subst"
-argument, "%html(...)" is replaced by the expansion of "..." which has been
-escaped for safe inclusion in HTML text.  Similarly, "%url(...)" is replaced
-by "..." after it has been expanded and escaped for use as a URL query
-parameter.  The argument to "wapp-subst" should always be enclosed in
-{...}.  Backslash substitutions are performed automatically.
+with a hyperlink to the /env page.  The "wapp-subst" command now contains
+a "%html(...)" substitution.  The "..." argument is expanded using the
+usual TCL rules, but then the result is escaped so that it is safe to include
+in an HTML document.  Other supported substitutions are "%url(...)" for
+URLs on the href= and src= attributes of HTML entities, and "%unsafe(...)"
+for direct literal substitution.  As its name implies, the %unsafe()
+substitution should be avoid whenever possible.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
 generates HTML that describes the content of the ::wapp dict.
