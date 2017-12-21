@@ -5,7 +5,7 @@ proc initialize_wapptclsh {} {
   if {[llength $argv]==0} return
   set script [lindex $argv 0]
   if {[file readable $script]} {
-    set fd [open $script rb]
+    set fd [open $script r]
     set main_script [read $fd]
     close $fd
     set argv [lrange $argv 1 end]
