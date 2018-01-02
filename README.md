@@ -43,7 +43,7 @@ technique is used for the hello-world example above.
 The procedure generates a reply using one or more calls to the "wapp-subst"
 command.  Each "wapp-subst" command appends new text to the reply, applying
 various substitutions as it goes.  The only substitution in this example is
-the \n at the end of the line.
+the \\n at the end of the line.
 
 The "wapp-start" command starts up the application.
 
@@ -342,7 +342,30 @@ implemented:
      command should only be used during debugging, as otherwise it introduces
      a severe security vulnerability into the application.
 
-6.0 Design Rules
+6.0 Limitations
+---------------
+
+Each Wapp process is single-threaded.
+The fileevent command is used to allow accepting multiple simultaneous
+HTTP requests.  However, as soon as a complete request is received, and
+the "wapp-page-NAME" proc runs, all other processing is suspended until 
+that proc completes.
+Hence, a long-running "wapp-page-NAME" proc can cause the system to
+become unresponsive.
+If this is a problem, the Wapp application can be run in CGI mode.
+In CGI mode, the overlying webserver will start a separate Wapp process
+for each request, and there are no limits on the number of simultaneous
+Wapp processes.
+
+The POST data parser for Wapp currently only understands
+application/x-www-form-urlencoded content.  Wapp does not (currently)
+have a decoder for multipart/form-data content.  A multipart/form-data
+decoder might be added in the future.  Or, individual applications can
+implement their own multipart/form-data decoder using the raw POST data
+held in the CONTENT entry of the ::wapp dict.
+
+
+7.0 Design Rules
 ----------------
 
 All global procs and variables used by Wapp begin with the four character
