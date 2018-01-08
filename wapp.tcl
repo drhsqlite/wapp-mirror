@@ -339,7 +339,10 @@ proc wappInt-http-readable-unsafe {chan} {
       }
     } elseif {$n==0} {
       # We have reached the blank line that terminates the header.
-      wappInt-parse-header $chan
+      if {[wappInt-parse-header $chan]} {
+        catch {close $chan}
+        return
+      }
       set len 0
       if {[dict exists $W CONTENT_LENGTH]} {
         set len [dict get $W CONTENT_LENGTH]
@@ -375,10 +378,7 @@ proc wappInt-http-readable-unsafe {chan} {
 proc wappInt-parse-header {chan} {
   upvar #0 wappInt-$chan W
   set hdr [split [dict get $W .header] \n]
-  if {$hdr==""} {
-    wappInt-close-channel $chan
-    return
-  }
+  if {$hdr==""} {return 1}
   set req [lindex $hdr 0]
   dict set W REQUEST_METHOD [set method [lindex $req 0]]
   if {[lsearch {GET HEAD POST} $method]<0} {
@@ -412,6 +412,7 @@ proc wappInt-parse-header {chan} {
     }
     dict set W $name $value
   }
+  return 0
 }
 
 # Invoke application-supplied methods to generate a reply to
