@@ -375,9 +375,13 @@ proc wappInt-http-readable-unsafe {chan} {
 proc wappInt-parse-header {chan} {
   upvar #0 wappInt-$chan W
   set hdr [split [dict get $W .header] \n]
+  if {$hdr==""} {
+    wappInt-close-channel $chan
+    return
+  }
   set req [lindex $hdr 0]
-  dict set W REQUEST_METHOD [lindex $req 0]
-  if {[lsearch {GET HEAD POST} [dict get $W REQUEST_METHOD]]<0} {
+  dict set W REQUEST_METHOD [set method [lindex $req 0]]
+  if {[lsearch {GET HEAD POST} $method]<0} {
     error "unsupported request method: \"[dict get $W REQUEST_METHOD]\""
   }
   set uri [lindex $req 1]
@@ -534,7 +538,8 @@ proc wappInt-handle-request {chan useCgi} {
     puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
     puts $chan "Connection: Closed\r"
   }
-  puts $chan "Content-Type: [dict get $wapp .mimetype]\r"
+  set mimetype [dict get $wapp .mimetype]
+  puts $chan "Content-Type: $mimetype\r"
   if {[dict exists $wapp .new-cookies]} {
     foreach {nm val} [dict get $wapp .new-cookies] {
       if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
@@ -544,7 +549,11 @@ proc wappInt-handle-request {chan useCgi} {
     }
   }
   puts $chan "\r"
-  puts $chan [encoding convertto utf-8 [dict get $wapp .reply]]
+  if {[string match text/* $mimetype]} {
+    puts $chan [encoding convertto utf-8 [dict get $wapp .reply]]
+  } else {
+    puts $chan [dict get $wapp .reply]
+  }
   flush $chan
   wappInt-close-channel $chan
 }
