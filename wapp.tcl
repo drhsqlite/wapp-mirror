@@ -511,6 +511,7 @@ proc wappInt-handle-request {chan useCgi} {
   # request.  If an error occurs while running that procedure, generate
   # an HTTP reply that contains the error message.
   #
+  wapp-before-dispatch-hook
   set mname [dict get $wapp PATH_HEAD]
   if {[catch {
     if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
@@ -558,6 +559,12 @@ proc wappInt-handle-request {chan useCgi} {
   flush $chan
   wappInt-close-channel $chan
 }
+
+# This routine runs just prior to request-handler dispatch.  The
+# default implementation is a no-op, but applications can override
+# to do additional transformations or checks.
+#
+proc wapp-before-dispatch-hook {} {return}
 
 # Process a single CGI request
 #
