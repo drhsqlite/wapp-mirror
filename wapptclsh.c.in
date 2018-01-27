@@ -22,6 +22,7 @@
 #define SQLITE_ENABLE_FTS4 1
 #define SQLITE_ENABLE_FTS5 1
 #define SQLITE_ENABLE_RTREE 1
+#define SQLITE_ENABLE_JSON1 1
 #define TCLSH_INIT_PROC wapptclsh_init_proc
 INCLUDE tclsqlite3.c
 
