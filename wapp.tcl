@@ -570,8 +570,12 @@ proc wappInt-handle-request {chan useCgi} {
   if {[dict exists $wapp .new-cookies]} {
     foreach {nm val} [dict get $wapp .new-cookies] {
       if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
-        set val [wappInt-enc-url $val]
-        puts $chan "Set-Cookie: $nm=$val; HttpOnly; Path=/\r"
+        if {$val==""} {
+          puts $chan "Set-Cookie: $nm=; HttpOnly; Path=/; Max-Age=1\r"
+        } else {
+          set val [wappInt-enc-url $val]
+          puts $chan "Set-Cookie: $nm=$val; HttpOnly; Path=/\r"
+        }
       }
     }
   }
