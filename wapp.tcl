@@ -163,6 +163,26 @@ proc wapp-set-cookie {name value} {
   dict lappend wapp .new-cookies $name $value
 }
 
+# Unset a cookie
+#
+proc wapp-clear-cookie {name} {
+  wapp-set-cookie $name {}
+}
+
+# Add extra entries to the reply header
+#
+proc wapp-reply-extra {name value} {
+  global wapp
+  dict lappend wapp .reply-extra $name $value
+}
+
+# Redirect to a different web page
+#
+proc wapp-redirect {uri} {
+  wapp-reply-code {302 found}
+  wapp-reply-extra Location $uri
+}
+
 # Examine the bodys of all procedures in this program looking for
 # unsafe calls to "wapp".  Return a text string containing warnings.
 # Return an empty string if all is ok.
@@ -539,6 +559,11 @@ proc wappInt-handle-request {chan useCgi} {
     puts $chan "Server: wapp\r"
     puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
     puts $chan "Connection: Closed\r"
+  }
+  if {[dict exists $wapp .reply-extra]} {
+    foreach {name value} [dict get $wapp .reply-extra] {
+      puts $chan "$name: $value\r"
+    }
   }
   set mimetype [dict get $wapp .mimetype]
   puts $chan "Content-Type: $mimetype\r"

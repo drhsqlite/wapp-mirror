@@ -16,10 +16,14 @@ proc wapp-default {} {
   wapp-subst {<li><p><a href='%html($B)/lint'>Lint</a>\n}
   wapp-subst {<li><p><a href='%html($B)/errorout'>Deliberate error</a>\n}
   wapp-subst {<li><p><a href='%html($B)/encodings'>Encoding checks</a>\n}
+  wapp-subst {<li><p><a href='%html($B)/redirect'>Redirect to env</a>\n}
   wapp "</ol>"
   if {[dict exists $wapp showenv]} {
     wapp-page-env
   }
+}
+proc wapp-page-redirect {} {
+  wapp-redirect env
 }
 proc wapp-page-env {} {
   global wapp
