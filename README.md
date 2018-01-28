@@ -92,9 +92,8 @@ available in ::wapp.
 >
     package require wapp
     proc wapp-default {} {
-      global wapp
       wapp-subst {<h1>Hello, World!</h1>\n}
-      set B [dict get $wapp BASE_URL]
+      set B [wapp-param BASE_URL]
       wapp-subst {<p>See the <a href='%html($B)/env'>Wapp }
       wapp-subst {Environment</a></p>\n}
     }
@@ -262,8 +261,11 @@ on Wapp:
      The _TEXT_ argument should be enclosed in {...} to prevent substitutions.
      The "wapp-subst" command itself will do all necessary backslash
      substitutions.  Command and variable substitutions only occur within
-     "%html(...)" and "%url(...)" and the results are safely escaped for
-     inclusion in the body of an HTML document or as a query parameter.
+     "%html(...)", "%url(...)", "%qp(...)", "%string(...)", and
+     "%unsafe(...)".  The substitutions are escaped (except in the case of
+     "%unsafe(...)") so that the result is safe for inclusion within the
+     body of an HTML document, a URL, a query parameter, or a javascript
+     string literal, respectively.
 
   +  **wapp-mimetype** _MIMETYPE_  
      Set the MIME-type for the generated web page.  The default is "text/html".
@@ -277,10 +279,13 @@ on Wapp:
   +  **wapp-reset**  
      Reset the web page under construction back to an empty string.
 
-  +  **wapp-set-cookie** \[-path _PATH_\] \[-expires _DAYS_\] _NAME_ _VALUE_  
+  +  **wapp-set-cookie** _NAME_ _VALUE_  
      Cause the cookie _NAME_ to be set to _VALUE_.
 
-  *  **wapp-safety-check**  
+  +  **wapp-clear-cookie** _NAME_  
+     Erase the cookie _NAME_.
+
+  +  **wapp-safety-check**  
      Examine all TCL procedures in the application and report errors about
      unsafe usage of "wapp".
 
@@ -291,13 +296,13 @@ on Wapp:
      XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
      preferred in most situations.
 
-  +  **wapp-encode-html** _TEXT_  
+  +  **wapp-escape-html** _TEXT_  
      Add _TEXT_ to the web page under construction after first escaping any
      HTML markup contained with _TEXT_.  This command is equivalent to
      "wapp-subst {%html(_TEXT_)}".
 
 
-  +  **wapp-encode-url** _TEXT_  
+  +  **wapp-escape-url** _TEXT_  
      Add _TEXT_ to the web page under construction after first escaping any
      characters so that the result is safe to include as the value of a
      query parameter on a URL.  This command is equivalent to

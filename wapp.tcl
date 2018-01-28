@@ -62,7 +62,7 @@ proc wapp-escape-url {txt} {
 #
 proc wapp-subst {txt} {
   global wapp
-  regsub -all {%(html|url|qp|unsafe)\(([^)]+)\)} $txt \
+  regsub -all {%(html|url|qp|string|unsafe)\(([^)]+)\)} $txt \
          {[wappInt-enc-\1 "\2"]} txt
   dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
 }
@@ -79,6 +79,9 @@ proc wapp-subst {txt} {
 #    wappInt-enc-qp             Escape text so that it is safe to use as the
 #                               value of a query parameter in a URL or in
 #                               post data or in a cookie.
+#
+#    wappInt-enc-string         Escape ", ', and \ for using inside of a
+#                               javascript string literal.
 #
 #    wappInt-enc-unsafe         Perform no encoding at all.  Unsafe.
 #
@@ -105,6 +108,9 @@ proc wappInt-enc-qp {s} {
     set s [subst -novar -noback $s]
   }
   return $s
+}
+proc wappInt-enc-string {s} {
+  return [string map {\\ \\\\ \" \\\" ' \\'} $s]
 }
 
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns
@@ -181,6 +187,14 @@ proc wapp-reply-extra {name value} {
 proc wapp-redirect {uri} {
   wapp-reply-code {302 found}
   wapp-reply-extra Location $uri
+}
+
+# Return the value of a query parameter or environment variable.
+#
+proc wapp-param {name {dflt {}}} {
+  global wapp
+  if {![dict exists $wapp $name]} {return $dflt}
+  return [dict get $wapp $name]
 }
 
 # Examine the bodys of all procedures in this program looking for

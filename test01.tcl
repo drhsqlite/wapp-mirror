@@ -4,8 +4,8 @@
 source wapp.tcl
 proc wapp-default {} {
   global wapp
-  set B [dict get $wapp BASE_URL]
-  set R [dict get $wapp SCRIPT_NAME]
+  set B [wapp-param BASE_URL]
+  set R [wapp-param SCRIPT_NAME]
   wapp "<h1>Hello, World!</h1>\n"
   wapp "<ol>"
   wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"
@@ -17,6 +17,9 @@ proc wapp-default {} {
   wapp-subst {<li><p><a href='%html($B)/errorout'>Deliberate error</a>\n}
   wapp-subst {<li><p><a href='%html($B)/encodings'>Encoding checks</a>\n}
   wapp-subst {<li><p><a href='%html($B)/redirect'>Redirect to env</a>\n}
+  set x "%string(...)"
+  set v abc'def\"ghi\\jkl
+  wapp-subst {<li>%html($x) substitution test: "%string($v)"\n}
   wapp "</ol>"
   if {[dict exists $wapp showenv]} {
     wapp-page-env
@@ -29,7 +32,7 @@ proc wapp-page-env {} {
   global wapp
   wapp-set-cookie env-cookie simple
   wapp "<h1>Wapp Environment</h1>\n"
-  wapp-unsafe "<form method='GET' action='[dict get $wapp SELF_URL]'>\n"
+  wapp-unsafe "<form method='GET' action='[wapp-param SELF_URL]'>\n"
   wapp "<input type='checkbox' name='showhdr'"
   if {[dict exists $wapp showhdr]} {
     wapp " checked"
@@ -44,13 +47,13 @@ proc wapp-page-env {} {
     wapp-escape-html "$var = [list [dict get $wapp $var]]\n"
   }
   wapp "</pre>"
-  wapp-unsafe "<p><a href='[dict get $wapp BASE_URL]/'>Home</a></p>\n"
+  wapp-unsafe "<p><a href='[wapp-param BASE_URL]/'>Home</a></p>\n"
 }
 proc wapp-page-fullenv {} {
   global wapp
   wapp-set-cookie env-cookie full
   wapp "<h1>Wapp Full Environment</h1>\n"
-  wapp-unsafe "<form method='POST' action='[dict get $wapp SELF_URL]'>\n"
+  wapp-unsafe "<form method='POST' action='[wapp-param SELF_URL]'>\n"
   wapp "<input type='checkbox' name='var1'"
   if {[dict exists $wapp showhdr]} {
     wapp " checked"
