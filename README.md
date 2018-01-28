@@ -92,10 +92,12 @@ available in ::wapp.
 >
     package require wapp
     proc wapp-default {} {
-      wapp-subst {<h1>Hello, World!</h1>\n}
       set B [wapp-param BASE_URL]
-      wapp-subst {<p>See the <a href='%html($B)/env'>Wapp }
-      wapp-subst {Environment</a></p>\n}
+      wapp-trim {
+        <h1>Hello, World!</h1>
+        <p>See the <a href='%html($B)/env'>Wapp
+        Environment</a></p>
+      }
     }
     proc wapp-page-env {} {
       global wapp
@@ -109,13 +111,17 @@ available in ::wapp.
     wapp-start $::argv
 
 In this application, the default "Hello, World!" page has been extended
-with a hyperlink to the /env page.  The "wapp-subst" command now contains
+with a hyperlink to the /env page.  The "wapp-subst" command has been
+replaced by "wapp-trim", which works the same way with the addition that
+it removes surplus whitespace from the left margin, so that the generated
+HTML text does not come out indented.  The "wapp-index" command uses
 a "%html(...)" substitution.  The "..." argument is expanded using the
 usual TCL rules, but then the result is escaped so that it is safe to include
 in an HTML document.  Other supported substitutions are "%url(...)" for
-URLs on the href= and src= attributes of HTML entities, and "%unsafe(...)"
-for direct literal substitution.  As its name implies, the %unsafe()
-substitution should be avoid whenever possible.
+URLs on the href= and src= attributes of HTML entities, "%qp(...)" for
+query parameters, "%string(...)" for string literals within javascript,
+and "%unsafe(...)" for direct literal substitution.  As its name implies,
+the %unsafe() substitution should be avoid whenever possible.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
 generates HTML that describes the content of the ::wapp dict.
@@ -266,6 +272,14 @@ on Wapp:
      "%unsafe(...)") so that the result is safe for inclusion within the
      body of an HTML document, a URL, a query parameter, or a javascript
      string literal, respectively.
+
+  +  **wapp-trim** _TEXT_  
+     Just like wapp-subst, this routine appends _TEXT_ to the web page
+     under construction, using the %html, %url, %qp, %string, and %unsafe
+     substitutions.  In addition, this routine removes surplus whitespace
+     from the left margin, so that if the _TEXT_ argument is intended in
+     the source script, it will appear at the left margin in the generated
+     output.
 
   +  **wapp-mimetype** _MIMETYPE_  
      Set the MIME-type for the generated web page.  The default is "text/html".

@@ -113,6 +113,18 @@ proc wappInt-enc-string {s} {
   return [string map {\\ \\\\ \" \\\" ' \\'} $s]
 }
 
+# Works like wapp-subst, but also removes whitespace from the beginning
+# of lines.
+#
+proc wapp-trim {txt} {
+  global wapp
+  regsub -all {\n\s+} [string trim $txt] \n txt
+  regsub -all {%(html|url|qp|string|unsafe)\(([^)]+)\)} $txt \
+         {[wappInt-enc-\1 "\2"]} txt
+  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+}
+
+
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns
 # an appropriate %HH encoding for the single character c.  If c is a unicode
 # character, then this routine might return multiple bytes:  %HH%HH%HH

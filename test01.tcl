@@ -12,11 +12,13 @@ proc wapp-default {} {
   wapp-subst {<li><p><a href='%html($B)/fullenv'>Full Environment</a>\n}
   set crazy [lsort [dict keys $wapp]]
   wapp-subst {<li><p><a href='%html($B)/env?keys=%url($crazy)'>}
-  wapp "Environment with crazy URL\n"
-  wapp-subst {<li><p><a href='%html($B)/lint'>Lint</a>\n}
-  wapp-subst {<li><p><a href='%html($B)/errorout'>Deliberate error</a>\n}
-  wapp-subst {<li><p><a href='%html($B)/encodings'>Encoding checks</a>\n}
-  wapp-subst {<li><p><a href='%html($B)/redirect'>Redirect to env</a>\n}
+  wapp "Environment with crazy URL</a>\n"
+  wapp-trim {
+    <li><p><a href='%html($B)/lint'>Lint</a>
+    <li><p><a href='%html($B)/errorout'>Deliberate error</a>
+    <li><p><a href='%html($B)/encodings'>Encoding checks</a>
+    <li><p><a href='%html($B)/redirect'>Redirect to env</a>
+  }
   set x "%string(...)"
   set v abc'def\"ghi\\jkl
   wapp-subst {<li>%html($x) substitution test: "%string($v)"\n}
