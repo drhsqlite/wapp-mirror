@@ -16,7 +16,7 @@ application can be launched in multiple ways:
 
   4.  As an SCGI program
 
-All four methods use the exact same application code and present the same
+All four methods use the same application code and present the same
 interface to the application user.  An application can be developed on
 the desktop using stand-alone mode (1), then deployed as a stand-alone
 server (2), or a CGI script (3), or as an SCGI program (4).
@@ -27,7 +27,7 @@ server (2), or a CGI script (3), or as an SCGI program (4).
 Wapp is designed to be easy to use.  A hello-world program is as follows:
 
 >
-    package require wapp  ;# OR source wapp.tcl
+    package require wapp  ;# OR just "source wapp.tcl"
     proc wapp-default {req} {
        wapp-subst {<h1>Hello, World!</h1>\n}
     }
@@ -276,10 +276,17 @@ on Wapp:
   +  **wapp-trim** _TEXT_  
      Just like wapp-subst, this routine appends _TEXT_ to the web page
      under construction, using the %html, %url, %qp, %string, and %unsafe
-     substitutions.  In addition, this routine removes surplus whitespace
-     from the left margin, so that if the _TEXT_ argument is intended in
-     the source script, it will appear at the left margin in the generated
-     output.
+     substitutions.  The difference is that this routine also removes
+     surplus whitespace from the left margin, so that if the _TEXT_
+     argument is intended in the source script, it will appear at the
+     left margin in the generated output.
+
+  +  **wapp-param** _NAME_ _DEFAULT_  
+     Return the value of the query parameter or environment variable _NAME_,
+     or return _DEFAULT_ if there is no such query parameter or environment
+     variable.  If _DEFAULT_ is omitted, then it is an empty string.
+     The same information can be obtained directly from the
+     $::wapp dict.  This command is merely a convenient shortcut.
 
   +  **wapp-mimetype** _MIMETYPE_  
      Set the MIME-type for the generated web page.  The default is "text/html".
