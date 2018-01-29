@@ -6,6 +6,7 @@ proc wapp-default {} {
   global wapp
   set B [wapp-param BASE_URL]
   set R [wapp-param SCRIPT_NAME]
+  wapp-cache-control max-age=15
   wapp "<h1>Hello, World!</h1>\n"
   wapp "<ol>"
   wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"

@@ -310,24 +310,9 @@ on Wapp:
      Examine all TCL procedures in the application and report errors about
      unsafe usage of "wapp".
 
-  +  **wapp-unsafe** _TEXT_  
-     Add _TEXT_ to the web page under construction even though _TEXT_ does
-     contain TCL variable and command substitutions.  The application developer
-     must ensure that the variable and command substitutions does not allow
-     XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
-     preferred in most situations.
-
-  +  **wapp-escape-html** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     HTML markup contained with _TEXT_.  This command is equivalent to
-     "wapp-subst {%html(_TEXT_)}".
-
-
-  +  **wapp-escape-url** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     characters so that the result is safe to include as the value of a
-     query parameter on a URL.  This command is equivalent to
-     "wapp-subst {%url(_TEXT_)}".
+  +  **wapp-cache-control** _CONTROL_  
+     The _CONTROL_ argument should be one of "no-cache", "max-age=N", or
+     "private,max-age=N", where N is an integer number of seconds.
 
 
 The following additional interfaces are envisioned, but are not yet
@@ -339,10 +324,6 @@ implemented:
      This command is useful for returning small images from a pure script
      input.  The "wapp-file-to-hex" command can be used at development time
      to generate appropriate _HEX_ for an image file.
-
-  +  **wapp-cache-control** _CONTROL_  
-     The _CONTROL_ argument should be one of "no-cache", "max-age=N", or
-     "private,max-age=N", where N is an integer number of seconds.
 
   +  **wapp-etag** _ETAG_  
      Set the expiration tag for the web page.
@@ -367,6 +348,28 @@ implemented:
      command is a no-op for short-lived CGI programs, obviously.  Also, this
      command should only be used during debugging, as otherwise it introduces
      a severe security vulnerability into the application.
+
+The following interfaces are deprecated.  They currently exist for
+compatibility but might disappear at any moment.
+
+  +  **wapp-unsafe** _TEXT_  
+     Add _TEXT_ to the web page under construction even though _TEXT_ does
+     contain TCL variable and command substitutions.  The application developer
+     must ensure that the variable and command substitutions does not allow
+     XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
+     preferred in most situations.
+
+  +  **wapp-escape-html** _TEXT_  
+     Add _TEXT_ to the web page under construction after first escaping any
+     HTML markup contained with _TEXT_.  This command is equivalent to
+     "wapp-subst {%html(_TEXT_)}".
+
+
+  +  **wapp-escape-url** _TEXT_  
+     Add _TEXT_ to the web page under construction after first escaping any
+     characters so that the result is safe to include as the value of a
+     query parameter on a URL.  This command is equivalent to
+     "wapp-subst {%url(_TEXT_)}".
 
 6.0 Limitations
 ---------------

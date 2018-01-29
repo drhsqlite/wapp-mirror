@@ -194,6 +194,17 @@ proc wapp-reply-extra {name value} {
   dict lappend wapp .reply-extra $name $value
 }
 
+# Specifies how the web-page under construction should be cached.
+# The argument should be one of:
+#
+#    no-cache
+#    max-age=N             (for some integer number of seconds, N)
+#    private,max-age=N
+#
+proc wapp-cache-control {x} {
+  wapp-reply-extra Cache-Control $x
+}
+
 # Redirect to a different web page
 #
 proc wapp-redirect {uri} {
@@ -608,10 +619,10 @@ proc wappInt-handle-request {chan useCgi} {
   if {$chan=="stdout"} {
     puts $chan "Status: [dict get $wapp .reply-code]\r"
   } else {
-    puts $chan "HTTP/1.0 [dict get $wapp .reply-code]\r"
+    puts $chan "HTTP/1.1 [dict get $wapp .reply-code]\r"
     puts $chan "Server: wapp\r"
     puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
-    puts $chan "Connection: Closed\r"
+    puts $chan "Connection: close\r"
   }
   if {[dict exists $wapp .reply-extra]} {
     foreach {name value} [dict get $wapp .reply-extra] {
