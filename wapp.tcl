@@ -286,6 +286,14 @@ proc wapp-start {arglist} {
       -cgi {
         set mode "cgi"
       }
+      -trace {
+        proc wappInt-trace {} {
+          set q [wapp-param QUERY_STRING]
+          set uri [wapp-param BASE_URL][wapp-param PATH_INFO]
+          if {$q!=""} {append uri ?$q}
+          puts $uri
+        }
+      }          
       default {
         error "unknown option: $term"
       }
@@ -308,6 +316,11 @@ proc wapp-start {arglist} {
   }
   vwait ::forever
 }
+
+# Tracing function for each HTTP request.  This is overridden by wapp-start
+# if tracing is enabled.
+#
+proc wappInt-trace {} {}
 
 # Start up a listening socket.  Arrange to invoke wappInt-new-connection
 # for each inbound HTTP connection.
@@ -571,6 +584,7 @@ proc wappInt-handle-request {chan useCgi} {
   # an HTTP reply that contains the error message.
   #
   wapp-before-dispatch-hook
+  wappInt-trace
   set mname [dict get $wapp PATH_HEAD]
   if {[catch {
     if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
