@@ -236,6 +236,19 @@ proc wapp-safety-check {} {
   return $res
 }
 
+# Applications under development can invoke this routine to cause the
+# environment for the current request to be written to standard output,
+# as a debugging aid.  This routine has no place in a production
+# application
+#
+proc wapp-debug-puts-env {} {
+  global wapp
+  foreach var [lsort [dict keys $wapp]] {
+    if {[string index $var 0]=="."} continue
+    puts "$var = [list [dict get $wapp $var]]"
+  }
+}
+
 # Start up the wapp framework.  Parameters are a list passed as the
 # single argument.
 #
