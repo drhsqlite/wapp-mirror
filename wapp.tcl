@@ -25,6 +25,10 @@ proc wapp {txt} {
   global wapp
   dict append wapp .reply $txt
 }
+
+############################ Begin Deprecated Interfaces ######################
+# Add text to the page under construction.  Do no escaping on the text.
+#
 proc wapp-unsafe {txt} {
   global wapp
   dict append wapp .reply $txt
@@ -53,6 +57,7 @@ proc wapp-escape-url {txt} {
   global wapp
   dict append wapp .reply [wappInt-enc-url $txt]
 }
+########################### End Deprecated Interfaces #########################
 
 # The argument should be in {...}.  Substitions of %html(...) encode ...
 # escaped for safe insertion into HTML.  %url(...) substitions encode the
