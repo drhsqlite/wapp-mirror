@@ -288,7 +288,7 @@ proc wapp-start {arglist} {
   for {set i 0} {$i<$n} {incr i} {
     set term [lindex $arglist $i]
     if {[string match --* $term]} {set term [string range $term 1 end]}
-    switch -- $term {
+    switch -glob -- $term {
       -server {
         incr i;
         set mode "server"
@@ -309,7 +309,12 @@ proc wapp-start {arglist} {
           if {$q!=""} {append uri ?$q}
           puts $uri
         }
-      }          
+      }
+      -D*=* {
+        if {[regexp {^.D([^=]+)=(.*)$} $term all var val]} {
+          set ::$var $val
+        }
+      }
       default {
         error "unknown option: $term"
       }

@@ -20,6 +20,7 @@ proc wapp-default {} {
     <li><p><a href='%html($B)/errorout'>Deliberate error</a>
     <li><p><a href='%html($B)/encodings'>Encoding checks</a>
     <li><p><a href='%html($B)/redirect'>Redirect to env</a>
+    <li><p><a href='globals'>TCL global variables</a>
   }
   set x "%string(...)"
   set v abc'def\"ghi\\jkl
@@ -31,6 +32,17 @@ proc wapp-default {} {
 }
 proc wapp-page-redirect {} {
   wapp-redirect env
+}
+proc wapp-page-globals {} {
+  wapp-trim {
+    <h1>TCL Global Variables</h1>
+    <ul>
+  }
+  foreach vname [lsort [uplevel #0 info vars]] {
+    set val ???
+    catch {set val [set ::$vname]}
+    wapp-subst {<li>%html($vname = [list $val])</li>\n}
+  }
 }
 proc wapp-page-env2 {} {
   wapp-trim {
