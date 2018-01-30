@@ -27,7 +27,8 @@ server (2), or a CGI script (3), or as an SCGI program (4).
 Wapp is designed to be easy to use.  A hello-world program is as follows:
 
 >
-    package require wapp  ;# OR just "source wapp.tcl"
+    #!/usr/bin/tclsh
+    package require wapp
     proc wapp-default {req} {
        wapp-subst {<h1>Hello, World!</h1>\n}
     }
@@ -35,7 +36,7 @@ Wapp is designed to be easy to use.  A hello-world program is as follows:
 
 The application defines one or more procedures that accept HTTP requests
 and generate appropriate replies.
-For an HTTP request where the initial portion of the URI is "abcde", the
+For an HTTP request where the initial portion of the URI path is "abcde", the
 procedure named "wapp-page-abcde" will be invoked to construct the reply.
 If no such procedure exists, "wapp-default" is invoked instead.  The latter
 technique is used for the hello-world example above.
@@ -85,9 +86,10 @@ for some specific URI, and point your web-browser at that URI.
 3.0 A Slightly Longer Example
 -----------------------------
 
-Information about each HTTP request is encoded in the global ::wapp
-dict variable.  The following sample program shows the information
-available in ::wapp.
+Wapp keeps track of various "parameters" or "params" that describe
+each HTTP request.  Those parameters are accessible using routines
+like "wapp-param _NAME_"
+The following sample program gives some examples:
 
 >
     package require wapp
@@ -102,9 +104,9 @@ available in ::wapp.
     proc wapp-page-env {} {
       global wapp
       wapp-subst {<h1>Wapp Environment</h1>\n<pre>\n}
-      foreach var [lsort [dict keys $wapp]] {
+      foreach var [lsort [wapp-param-list]] {
         if {[string index $var 0]=="."} continue
-        wapp-subst {%html($var) = %html([list [dict get $wapp $var]])\n}
+        wapp-subst {%html($var) = %html([list [wapp-param $var]])\n}
       }
       wapp-subst {</pre>\n}
     }
@@ -114,44 +116,44 @@ In this application, the default "Hello, World!" page has been extended
 with a hyperlink to the /env page.  The "wapp-subst" command has been
 replaced by "wapp-trim", which works the same way with the addition that
 it removes surplus whitespace from the left margin, so that the generated
-HTML text does not come out indented.  The "wapp-index" command uses
-a "%html(...)" substitution.  The "..." argument is expanded using the
-usual TCL rules, but then the result is escaped so that it is safe to include
-in an HTML document.  Other supported substitutions are "%url(...)" for
+HTML text does not come out indented.  The "wapp-trim" and "wapp-subst"
+commands in this example use "%html(...)" substitutions.  The "..." argument 
+is expanded using the usual TCL rules, but then the result is escaped so
+that it is safe to include in an HTML document.  Other supported
+substitutions are "%url(...)" for
 URLs on the href= and src= attributes of HTML entities, "%qp(...)" for
 query parameters, "%string(...)" for string literals within javascript,
 and "%unsafe(...)" for direct literal substitution.  As its name implies,
 the %unsafe() substitution should be avoid whenever possible.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
-generates HTML that describes the content of the ::wapp dict.
-Keys that begin with "." are for internal use by Wapp and are skipped
+generates HTML that describes all of the query parameters. Parameter names
+that begin with "." are for internal use by Wapp and are skipped
 for this display.  Notice the use of "wapp-subst" to safely escape text
 for inclusion in an HTML document.
 
-4.0 The ::wapp Global Dict
+4.0 Parameters
 --------------------------
 
-To better understand how the ::wapp dict works, try running the previous
+To better understand Wapp parameters, try running the previous
 sample program, but extend the /env URL with extra path elements and query
 parameters.  For example:
 <http://localhost:8080/env/longer/path?q1=5&title=hello+world%21>
 
 Notice how the query parameters in the input URL are decoded and become
-elements of the ::wapp dict.  The same thing occurs with POST parameters
-and cookies - they are all converted into entries in the ::wapp dict
-variable so that the parameters are easily accessible to page generation
-procedures.
+parameters.  The same thing occurs with POST parameters
+and cookies - they are all converted into parameters accessible
+using the "wapp-param" interface.
 
-The ::wapp dict contains additional information about the request,
-roughly corresponding to CGI environment variables.  To prevent environment
+Wapp also provides parameters that describe the execution environment.
+These parameter look like CGI environment variables.  To prevent environment
 information from overlapping and overwriting query parameters, all the
 environment information uses upper-case names and all query parameters
 are required to be lower case.  If an input URL contains an upper-case
 query parameter (or POST parameter or cookie), that parameter is silently
-omitted from the ::wapp dict.
+omitted.
 
-The ::wapp dict contains the following environment values:
+The following environment parameters are always available:
 
   +  **HTTP\_HOST**  
      The hostname (or IP address) and port that the client used to create
@@ -204,7 +206,7 @@ The ::wapp dict contains the following environment values:
 
 
 All of the above are standard CGI environment values.
-The following are additional values add by Wapp:
+The following are supplemental environment parameters are added by Wapp:
 
 
   *  **CONTENT**  
@@ -285,13 +287,25 @@ on Wapp:
      Return the value of the query parameter or environment variable _NAME_,
      or return _DEFAULT_ if there is no such query parameter or environment
      variable.  If _DEFAULT_ is omitted, then it is an empty string.
-     The same information can be obtained directly from the
-     $::wapp dict.  This command is merely a convenient shortcut.
+
+  +  **wapp-set-param** _NAME_ _VALUE_  
+     Change the value of parameter _NAME_ to _VALUE_.  If _NAME_ does not
+     currently exist, it is created.
+
+  +  **wapp-param-exists** _NAME_  
+     Return true if and only if a parameter called _NAME_ exists for the
+     currentn request.
+
+  +  **wapp-param-list** _NAME_  
+     Return a TCL list containing the names of all parameters for the current
+     request.  Note that there are several parameters that Wapp uses
+     internally.  Those internal-use parameters all have names that begin
+     with ".".
 
   +  **wapp-mimetype** _MIMETYPE_  
      Set the MIME-type for the generated web page.  The default is "text/html".
 
-  +  **wapp-reply-code** _CODE_
+  +  **wapp-reply-code** _CODE_  
      Set the reply-code for the HTTP request.  The default is "200 Ok".
 
   +  **wapp-redirect** _TARGET-URL_  
@@ -391,7 +405,7 @@ application/x-www-form-urlencoded content.  Wapp does not (currently)
 have a decoder for multipart/form-data content.  A multipart/form-data
 decoder might be added in the future.  Or, individual applications can
 implement their own multipart/form-data decoder using the raw POST data
-held in the CONTENT entry of the ::wapp dict.
+held in the CONTENT parameter.
 
 
 7.0 Design Rules
