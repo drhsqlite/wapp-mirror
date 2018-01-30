@@ -685,6 +685,7 @@ proc wappInt-handle-cgi-request {} {
     HTTP_HOST
     HTTP_REFERER
     HTTP_USER_AGENT
+    HTTPS
     PATH_INFO
     QUERY_STRING
     REMOTE_ADDR
