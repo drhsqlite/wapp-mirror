@@ -45,8 +45,11 @@ proc wapp-page-globals {} {
   }
 }
 proc wapp-page-env2 {} {
+  wapp-allow-xorigin-params
   wapp-trim {
     <h1>Wapp Environment using wapp-debug-env</h1>
+    <p>This page uses wapp-allow-xorigin-params so that new
+       query parameters may be added manually to the URL.</p>
     <pre>%html([wapp-debug-env])</pre>
   }
 }
