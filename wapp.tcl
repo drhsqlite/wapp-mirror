@@ -213,7 +213,7 @@ proc wapp-cache-control {x} {
 # Redirect to a different web page
 #
 proc wapp-redirect {uri} {
-  wapp-reply-code {302 found}
+  wapp-reply-code {307 Redirect}
   wapp-reply-extra Location $uri
 }
 
