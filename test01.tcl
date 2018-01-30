@@ -10,7 +10,8 @@ proc wapp-default {} {
   wapp "<h1>Hello, World!</h1>\n"
   wapp "<ol>"
   wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"
-  wapp-subst {<li><p><a href='%html($B)/fullenv'>Full Environment</a>\n}
+  wapp-subst {<li><p><a href='env2'>Environment using wapp-debug-env</a>\n}
+   wapp-subst {<li><p><a href='%html($B)/fullenv'>Full Environment</a>\n}
   set crazy [lsort [dict keys $wapp]]
   wapp-subst {<li><p><a href='%html($B)/env?keys=%url($crazy)'>}
   wapp "Environment with crazy URL</a>\n"
@@ -30,6 +31,12 @@ proc wapp-default {} {
 }
 proc wapp-page-redirect {} {
   wapp-redirect env
+}
+proc wapp-page-env2 {} {
+  wapp-trim {
+    <h1>Wapp Environment using wapp-debug-env</h1>
+    <pre>%html([wapp-debug-env])</pre>
+  }
 }
 proc wapp-page-env {} {
   global wapp
