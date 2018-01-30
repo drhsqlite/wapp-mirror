@@ -1,5 +1,5 @@
 # This script demonstrates how to receive bulk HTML content
-# (such as a complete <table>) and inserting it in the middle
+# (such as a complete <table>) and insert it in the middle
 # of the DOM using XMLHttpRequest
 #
 package require wapp

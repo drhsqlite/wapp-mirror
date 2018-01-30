@@ -1,5 +1,6 @@
-# This script demonstrates how to send form data as JSON using
-# XMLHttpRequest
+# This script demonstrates how to send form data from the client browser
+# back up to the server using an XMLHttpRequest with 
+# application/x-www-form-urlencoded content.
 #
 package require wapp
 proc wapp-default {} {
@@ -33,11 +34,10 @@ proc wapp-default {} {
   }
 }
 proc wapp-page-acceptjson {} {
-  global wapp
   puts "Accept Callback"
   puts "mimetype: [list [wapp-param CONTENT_TYPE]]"
   puts "content: [list [wapp-param CONTENT]]"
-  foreach var [lsort [dict keys $wapp]] {
+  foreach var [lsort [wapp-param-list]] {
     if {![regexp {^[a-z]} $var]} continue
     puts "$var = [list [wapp-param $var]]"
   }

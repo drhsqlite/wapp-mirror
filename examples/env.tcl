@@ -5,19 +5,15 @@
 #
 #   wapptclsh env.tcl
 #
-# All web pages show the CGI environment.
+# All web pages show the Wapp execution environment, which includes
+# CGI-line environment variables, decoded query and POST parameters, and 
+# decoded cookies.
 #
 package require wapp
 proc wapp-default {} {
-  global wapp
   wapp-trim {
     <h1>Wapp Environment</h1>
-    <pre>
+    <pre>%html([wapp-debug-env])</pre>
   }
-  foreach var [lsort [dict keys $wapp]] {
-    if {[string index $var 0]=="."} continue
-    wapp-subst {%html($var) = %html([list [dict get $wapp $var]])\n}
-  }
-  wapp-subst {</pre>\n}
 }
 wapp-start $argv

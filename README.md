@@ -328,6 +328,10 @@ on Wapp:
      The _CONTROL_ argument should be one of "no-cache", "max-age=N", or
      "private,max-age=N", where N is an integer number of seconds.
 
+  +  **wapp-debug-env**  
+     This routine returns text that describes all of the Wapp parameters.
+     Use it to get a parameter dump for troubleshooting purposes.
+
 
 The following additional interfaces are envisioned, but are not yet
 implemented:
@@ -385,7 +389,38 @@ compatibility but might disappear at any moment.
      query parameter on a URL.  This command is equivalent to
      "wapp-subst {%url(_TEXT_)}".
 
-6.0 Limitations
+
+6.0 Developing Applications Using Wapp
+--------------------------------------
+
+You can use whatever development practices you are comformable with.  But
+if you want some hints for getting started, consider the following:
+
+  1.  Compile the "wapptclsh" executable.  You do not need a separate
+      interpreter to run Wapp.  A standard "tclsh" will work fine.  But
+      "wapptclsh" contains the a built-in copy of "wapp.tcl" and it
+      has SQLite compiled in.  We find it convenient to use.  The sequel
+      will assume you have "wapptclsh" somewhere on your $PATH.
+
+  2.  Seed your application using one of the short scripts shown above,
+      or perhaps one of the [examples](/file/examples) in this repository.
+
+  3.  Make a few simple changes to the code.
+
+  4.  Run "wapptclsh yourcode.tcl" to test your changes.
+
+  5.  Goto 3.  Continue until your application is working.
+
+  6.  Move the "yourcode.tcl" file to your server for deployment.
+
+During the loop between steps (3) and (5), there is no web server sitting
+in between the application and your browser, which means there is no
+translation or interpretation of traffic.  This can help make debugging
+easier.  Also, you can add "puts" commands to the application to get
+interactive debugging information on your screen while the application
+is running.
+
+7.0 Limitations
 ---------------
 
 Each Wapp process is single-threaded.
@@ -407,8 +442,14 @@ decoder might be added in the future.  Or, individual applications can
 implement their own multipart/form-data decoder using the raw POST data
 held in the CONTENT parameter.
 
+As a defense against
+[Cross-Site Request Forgery (CSRF)](https://en.wikipedia.org/wiki/Cross-site_request_forgery)
+attacks, Wapp refuses to parse any POST query parameters unless there
+is a Referer entry in the header that matches the request URI.  In other
+words, Wapp assumes that POST requests originate from itself and any other
+POST requests are treated as an attack and ignored.
 
-7.0 Design Rules
+8.0 Design Rules
 ----------------
 
 All global procs and variables used by Wapp begin with the four character

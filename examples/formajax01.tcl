@@ -1,5 +1,5 @@
-# This script demonstrates how to send form data as JSON using
-# XMLHttpRequest
+# This script demonstrates how to send form data from the client browser
+# back up to the server using an XMLHttpRequest with JSON content.
 #
 package require wapp
 proc wapp-default {} {
