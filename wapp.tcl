@@ -496,6 +496,7 @@ proc wappInt-parse-header {chan} {
       CONTENT-TYPE {set name CONTENT_TYPE}
       HOST {set name HTTP_HOST}
       COOKIE {set name HTTP_COOKIE}
+      ACCEPT-ENCODING {set name HTTP_ACCEPT_ENCODING}
       default {set name .hdr:$name}
     }
     dict set W $name $value
@@ -648,12 +649,20 @@ proc wappInt-handle-request {chan useCgi} {
       }
     }
   }
-  puts $chan "\r"
   if {[string match text/* $mimetype]} {
-    puts $chan [encoding convertto utf-8 [dict get $wapp .reply]]
+    set reply [encoding convertto utf-8 [dict get $wapp .reply]]
+    if {[regexp {\ygzip\y} [wapp-param HTTP_ACCEPT_ENCODING]]} {
+      catch {
+        set x [zlib gzip $reply]
+        set reply $x
+        puts $chan "Content-Encoding: gzip\r"
+      }
+    }
   } else {
-    puts $chan [dict get $wapp .reply]
+    set reply [dict get $wapp .reply]
   }
+  puts $chan \r
+  puts $chan $reply
   flush $chan
   wappInt-close-channel $chan
 }
@@ -669,6 +678,7 @@ proc wapp-before-dispatch-hook {} {return}
 proc wappInt-handle-cgi-request {} {
   global wapp env
   foreach key {
+    ACCEPT_ENCODING
     CONTENT_LENGTH
     CONTENT_TYPE
     HTTP_COOKIE
