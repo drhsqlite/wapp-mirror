@@ -225,6 +225,28 @@ proc wapp-param {name {dflt {}}} {
   return [dict get $wapp $name]
 }
 
+# Return the value of a query parameter or environment variable.
+#
+proc wapp-param-exists {name} {
+  global wapp
+  return [dict exists $wapp $name]
+}
+
+# Set the value of a parameter
+#
+proc wapp-set-param {name value} {
+  global wapp
+  dict set wapp $name $value
+}
+
+# Return all parameter names that match the GLOB pattern, or all
+# names if the GLOB pattern is omitted.
+#
+proc wapp-param-list {{glob {*}}} {
+  global wapp
+  return [dict keys $wapp $glob]
+}
+
 # Examine the bodys of all procedures in this program looking for
 # unsafe calls to "wapp".  Return a text string containing warnings.
 # Return an empty string if all is ok.
