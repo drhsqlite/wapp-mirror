@@ -49,7 +49,7 @@ proc wapp-default {} {
   }
   if {$cnt} {wapp-subst {<hr>\n}}
   wapp-trim {
-    <p><form method="GET" action="$base/list">
+    <p><form method="GET" action="%url($base/list)">
     <input type="text" width="20" name="add">
     <input class="button" type="submit" value="Add"></form>
     <p><a class="button" href="%url($base/common)">Common Purchases</a>
