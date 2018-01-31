@@ -272,6 +272,23 @@ proc wapp-allow-xorigin-params {} {
   }
 }
 
+# Set the content-security-policy.
+#
+# The default content-security-policy is very strict:  "default-src 'self'"
+# The default policy prohibits the use of in-line javascript or CSS.
+#
+# Provide an alternative CSP as the argument.  Or use "off" to disable
+# the CSP completely.
+#
+proc wapp-content-security-policy {val} {
+  global wapp
+  if {$val=="off"} {
+    dict unset wapp .csp
+  } else {
+    dict set wapp .csp $val
+  }
+}
+
 # Examine the bodys of all procedures in this program looking for
 # unsafe calls to "wapp".  Return a text string containing warnings.
 # Return an empty string if all is ok.
@@ -603,6 +620,7 @@ proc wappInt-handle-request {chan useCgi} {
   dict set wapp .reply {}
   dict set wapp .mimetype {text/html; charset=utf-8}
   dict set wapp .reply-code {200 Ok}
+  dict set wapp .csp {default-src 'self'}
 
   # Set up additional CGI environment values
   #
@@ -703,6 +721,9 @@ proc wappInt-handle-request {chan useCgi} {
     foreach {name value} [dict get $wapp .reply-extra] {
       puts $chan "$name: $value\r"
     }
+  }
+  if {[dict exists $wapp .csp]} {
+    puts $chan "Content-Security-Policy: [dict get $wapp .csp]\r"
   }
   set mimetype [dict get $wapp .mimetype]
   puts $chan "Content-Type: $mimetype\r"

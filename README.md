@@ -366,6 +366,14 @@ on Wapp:
      The _CONTROL_ argument should be one of "no-cache", "max-age=N", or
      "private,max-age=N", where N is an integer number of seconds.
 
+  +  **wapp-content-security-policy** _POLICY_  
+     Set the Content Security Policy (hereafter "CSP") to _POLICY_.  The
+     default CSP is "default-src 'self'", which is very restriction.  The
+     default CSP disallows (a) loading any resources from other origins,
+     (b) the use of eval(), and (c) in-line javascript or CSS of any kind.
+     Set _POLICY_ to "off" to completely disable the CSP mechanism.  Or
+     specify some other policy suitable for the needs of the application.
+
   +  **wapp-debug-env**  
      This routine returns text that describes all of the Wapp parameters.
      Use it to get a parameter dump for troubleshooting purposes.
@@ -390,12 +398,6 @@ implemented:
   +  **wapp-send-query** _DB_ _SQL_  
      Run the SQLite query _SQL_ on the _DB_ database connection and make the
      HTTP reply be the value of the first column of the first row in the result.
-
-  +  **wapp-set-csp** _POLICY_  
-     Set the Content Security Policy for the application.  This command only
-     works for command-line and server modes.  This command is a no-op for CGI
-     and SCGI since there is no standard way of communicating the desired
-     content security policy back to the server in those instances.
 
   +  **wapp-debug-port** _PORT_  
      For debugging use only: open a listening TCP socket on _PORT_ and run

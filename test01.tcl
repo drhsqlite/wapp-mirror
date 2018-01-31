@@ -21,6 +21,7 @@ proc wapp-default {} {
     <li><p><a href='%html($B)/encodings'>Encoding checks</a>
     <li><p><a href='%html($B)/redirect'>Redirect to env</a>
     <li><p><a href='globals'>TCL global variables</a>
+    <li><p><a href='csptest'>Content Security Policy</a>
   }
   set x "%string(...)"
   set v abc'def\"ghi\\jkl
@@ -145,5 +146,19 @@ proc wapp-page-errorout {} {
   wapp "<p>This test should be ignored by the error handler\n"
   wapp $noSuchVariable
   wapp "<p>After the error\n"
+}
+proc wapp-page-csptest {} {
+  wapp-allow-xorigin-params
+  if {[wapp-param-exists csp]} {
+    wapp-content-security-policy [wapp-param csp]
+  }
+  wapp-trim {
+    <h1>Content Security Policy Test Page</h1>
+    <p> There is a &lt;script&gt; at the bottom of
+    this page that will invoke an alert().  The
+    script will be disabled by the default CSP.
+    <p>Use the csp= query parameter to change CSP.
+    <script>alert("This is the alert");</script>
+  }
 }
 wapp-start $::argv
