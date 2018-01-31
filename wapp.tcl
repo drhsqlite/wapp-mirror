@@ -714,7 +714,6 @@ proc wappInt-handle-request {chan useCgi} {
   } else {
     puts $chan "HTTP/1.1 [dict get $wapp .reply-code]\r"
     puts $chan "Server: wapp\r"
-    puts $chan "Content-Length: [string length [dict get $wapp .reply]]\r"
     puts $chan "Connection: close\r"
   }
   if {[dict exists $wapp .reply-extra]} {
@@ -746,11 +745,13 @@ proc wappInt-handle-request {chan useCgi} {
         set x [zlib gzip $reply]
         set reply $x
         puts $chan "Content-Encoding: gzip\r"
+        fconfigure $chan -translation binary
       }
     }
   } else {
     set reply [dict get $wapp .reply]
   }
+  puts $chan "Content-Length: [string length $reply]\r"
   puts $chan \r
   puts $chan $reply
   flush $chan
@@ -768,9 +769,9 @@ proc wapp-before-dispatch-hook {} {return}
 proc wappInt-handle-cgi-request {} {
   global wapp env
   foreach key {
-    ACCEPT_ENCODING
     CONTENT_LENGTH
     CONTENT_TYPE
+    HTTP_ACCEPT_ENCODING
     HTTP_COOKIE
     HTTP_HOST
     HTTP_REFERER
