@@ -4,8 +4,8 @@ Wapp - A Web-Application Framework for TCL
 1.0 Introduction
 ----------------
 
-Wapp is a lightweight framework that simplifies the
-construction of web application written in TCL. The same Wapp-based
+Wapp is a lightweight framework that simplifies the construction
+of web application written in TCL. The same Wapp-based
 application can be launched in multiple ways:
 
   1.  From the command-line, with automatic web-browser startup
@@ -21,10 +21,14 @@ interface to the application user.  An application can be developed on
 the desktop using stand-alone mode (1), then deployed as a stand-alone
 server (2), or a CGI script (3), or as an SCGI program (4).
 
+Wapp applications are inheriently resistant against XSS and CSRF attacks.
+See the "Security Considerations" section below for further details on
+the attack resistance of Wapp applications.
+
 2.0 Hello World!
 ----------------
 
-Wapp is designed to be easy to use.  A hello-world program is as follows:
+Wapp applications are easy to develop.  A hello-world program is as follows:
 
 >
     #!/usr/bin/tclsh
@@ -34,8 +38,8 @@ Wapp is designed to be easy to use.  A hello-world program is as follows:
     }
     wapp-start $::argv
 
-The application defines one or more procedures that accept HTTP requests
-and generate appropriate replies.
+Every Wapp application defines one or more procedures that accept HTTP
+requests and generate appropriate replies.
 For an HTTP request where the initial portion of the URI path is "abcde", the
 procedure named "wapp-page-abcde" will be invoked to construct the reply.
 If no such procedure exists, "wapp-default" is invoked instead.  The latter
@@ -428,8 +432,62 @@ compatibility but might disappear at any moment.
      query parameter on a URL.  This command is equivalent to
      "wapp-subst {%url(_TEXT_)}".
 
+6.0 Security Considerations
+---------------------------
 
-6.0 Developing Applications Using Wapp
+Wapp strives for security by default.  Applications can disable security
+features on an as-needed basis, but the default setting for security
+features is always "on".
+
+Security features in Wapp include the following:
+
+  1.  The default
+      [Content Security Policy](https://en.wikipedia.org/wiki/Content_Security_Policy)
+      of "CSP"
+      for all Wapp applications is _default\_src 'self'_.  In that mode,
+      resources must all be loaded from the same origin, the use of
+      eval() and similar commands in javascript is prohibited, and
+      no in-line javascript or CSS is allowed.  These limitations help
+      keep application safe from 
+      [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting)
+      attacks, even in the face of application coding errors. If these
+      restrictions are too severe for an application, the CSP can be
+      relaxed using the "wapp-content-security-policy" command.
+
+  2.  Access to GET query parameters and POST parameters is prohibited
+      unless the origin of the request is the application itself, as
+      determined by the Referrer field in the HTTP header. This feature
+      helps to prevent
+      [Cross-site Request Forgery](https://en.wikipedia.org/wiki/Cross-site_request_forgery)
+      attacks. The "wapp-allow-xorigin-params" command can be used to
+      disable this protection on a case-by-case basis.
+
+  3.  Cookies, query parameters, and POST parameters are automatically
+      decoded before they ever reach application code. There is no risk
+      that the application program will forget a decoding step or
+      accidently miscode a decoding operation.
+
+  4.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
+      automatically escape generated text so that it is safe for inclusion
+      within HTML, within a javascript string literal, as a URL, or as
+      the value of a query parameter. As long as the application programmer
+      is careful to always use "wapp-subst" and/or "wapp-trim" to generate
+      replies, there is little risk of injection attacks.
+
+  5.  If the application is launched on a command-line with the --trim
+      option, then instead of running the application, Wapp scans the
+      application code looking for constructs that are unsafe.  Unsafe
+      constructs include things such as using "wapp-subst" with an argument
+      that is not contained within {...}.
+
+Part of what makes Wapp easy to use is that it helps free application
+developers from the worry of accidently introducing security vulnerabilities
+via programming errors.  Of course, no framework is fool-proof.  Developers
+still must be aware of security.  Wapp does not prevent every error, but
+it does help make writing a secure application easier and less stressful.
+
+
+7.0 Developing Applications Using Wapp
 --------------------------------------
 
 You can use whatever development practices you are comformable with.  But
@@ -446,7 +504,10 @@ if you want some hints for getting started, consider the following:
 
   3.  Make a few simple changes to the code.
 
-  4.  Run "wapptclsh yourcode.tcl" to test your changes.
+  4.  Run "wapptclsh yourcode.tcl" to test your changes.  Use the --trace
+      option to list each HTTP request URI as it is encountered.  Use the
+      --lint option to scan the application code for dodgy constructs that
+      must be a security problem.
 
   5.  Goto 3.  Continue until your application is working.
 
@@ -459,7 +520,7 @@ easier.  Also, you can add "puts" commands to the application to get
 interactive debugging information on your screen while the application
 is running.
 
-7.0 Limitations
+8.0 Limitations
 ---------------
 
 Each Wapp process is single-threaded.
@@ -481,7 +542,7 @@ decoder might be added in the future.  Or, individual applications can
 implement their own multipart/form-data decoder using the raw POST data
 held in the CONTENT parameter.
 
-8.0 Design Rules
+9.0 Design Rules
 ----------------
 
 All global procs and variables used by Wapp begin with the four character
