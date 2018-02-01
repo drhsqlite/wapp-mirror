@@ -5,9 +5,9 @@
 #    (1) Create the database using:
 #
 #        CREATE TABLE shoplist(id INTEGER PRIMARY KEY AUTOINCREMENT,
-#                              x TEXT UNIQUE COLLAGE nocase);
+#                              x TEXT UNIQUE COLLATE nocase);
 #        CREATE TABLE done(delid INTEGER PRIMARY KEY AUTOINCREMENT,
-#                          id INTEGER, x TEXT COLLAGE nocase);
+#                          id INTEGER, x TEXT COLLATE nocase);
 #        CREATE TABLE config(name TEXT PRIMARY KEY, value ANY) WITHOUT ROWID;
 #        INSERT INTO config VALUES('password',<Your-Password-Here>);
 #

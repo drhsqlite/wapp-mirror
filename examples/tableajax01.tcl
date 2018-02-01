@@ -19,7 +19,17 @@ proc wapp-default {} {
     to cause content to be inserted above this paragraph and below
     the initial paragraph
     </form></p>
-    <script>
+    <script src='%url([wapp-param SCRIPT_NAME]/script.js)'></script>
+  }
+}
+
+# This is the javascript that takes control of the form and causes form
+# submissions to fetch and insert HTML text.
+#
+proc wapp-page-script.js {} {
+  wapp-mimetype text/javascript
+  wapp-cache-control max-age=3600
+  wapp-trim {
     document.getElementById("theForm").onsubmit = function(){
       var xhttp = new XMLHttpRequest();
       xhttp.open("GET", "%string([wapp-param BASE_URL])/gettable", true);
@@ -33,10 +43,15 @@ proc wapp-default {} {
       xhttp.send();
       return false
     }
-    </script>
   }
 }
+
+# This counter increments on each /gettable call.
 set counter 0
+
+# The /gettable page returns the content of a table to be inserted
+# in the original page.
+#
 proc wapp-page-gettable {} {
   global counter
   incr counter

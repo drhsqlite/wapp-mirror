@@ -3,6 +3,12 @@
 # application/x-www-form-urlencoded content.
 #
 package require wapp
+
+# The default page paints a form to be submitted.
+# The default content-security-policy of Wapp restricts the use
+# of in-line javascript, so the script content must be returned by
+# a separate resource.
+#
 proc wapp-default {} {
   wapp-trim {
     <h1>Example Of Sending application/x-www-form-urlencoded Using AJAX</h1>
@@ -17,22 +23,35 @@ proc wapp-default {} {
     <tr><td><td><input type="submit" value="Send">
     </table>
     </form>
-    <script>
+    <script src='%url([wapp-param SCRIPT_NAME]/script.js)'></script>
+  }
+}
+
+# This is the javascript that takes control of the form and causes form
+# submissions to be send using XMLHttpRequest with urlencoded content.
+#
+proc wapp-page-script.js {} {
+  wapp-mimetype text/javascript
+  wapp-cache-control max-age=3600
+  wapp-trim {
     document.getElementById("nameForm").onsubmit = function(){
       function val(id){ return escape(document.getElementById(id).value) }
       var jx = "firstname="+val("firstName")+
                "&lastname="+val("lastName")+
                "&age="+val("age");
       var xhttp = new XMLHttpRequest();
-      xhttp.open("POST", "%string([wapp-param BASE_URL])/acceptjson", true);
+      xhttp.open("POST", "%string([wapp-param SCRIPT_NAME])/acceptjson", true);
       xhttp.setRequestHeader("Content-Type",
                              "application/x-www-form-urlencoded");
       xhttp.send(jx);
       return false
     }
-    </script>
   }
 }
+
+# This page accepts a form submission and prints it on standard output.
+# A real server would do something useful with the data.
+#
 proc wapp-page-acceptjson {} {
   puts "Accept Callback"
   puts "mimetype: [list [wapp-param CONTENT_TYPE]]"

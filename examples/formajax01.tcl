@@ -2,6 +2,12 @@
 # back up to the server using an XMLHttpRequest with JSON content.
 #
 package require wapp
+
+# The default page paints a form to be submitted.
+# The default content-security-policy of Wapp restricts the use
+# of in-line javascript, so the script content must be returned by
+# a separate resource.
+#
 proc wapp-default {} {
   wapp-trim {
     <h1>Example Of Sending Form Data As JSON Using AJAX</h1>
@@ -16,7 +22,17 @@ proc wapp-default {} {
     <tr><td><td><input type="submit" value="Send">
     </table>
     </form>
-    <script>
+    <script src='%url([wapp-param SCRIPT_NAME]/script.js)'></script>
+  }
+}
+
+# This is the javascript that takes control of the form and causes form
+# submissions to be send using XMLHttpRequest with JSON content
+#
+proc wapp-page-script.js {} {
+  wapp-mimetype text/javascript
+  wapp-cache-control max-age=3600
+  wapp-trim {
     document.getElementById("nameForm").onsubmit = function(){
       function val(id){ return document.getElementById(id).value }
       var jx = {
@@ -25,14 +41,17 @@ proc wapp-default {} {
          "age": val("age")
       }
       var xhttp = new XMLHttpRequest();
-      xhttp.open("POST", "%string([wapp-param BASE_URL])/acceptjson", true);
+      xhttp.open("POST", "%string([wapp-param SCRIPT_NAME])/acceptjson", true);
       xhttp.setRequestHeader("Content-Type","text/json");
       xhttp.send(JSON.stringify(jx));
       return false
     }
-    </script>
   }
 }
+
+# This page accepts a form submission and prints it on standard output.
+# A real server would do something useful with the data.
+#
 proc wapp-page-acceptjson {} {
   puts "Accept Json Called"
   puts "mimetype: [list [wapp-param CONTENT_TYPE]]"
