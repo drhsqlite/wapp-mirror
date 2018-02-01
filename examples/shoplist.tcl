@@ -20,7 +20,7 @@
 set DBFILE /shoppinglist.db  ;# Change to name of the database.
 proc wapp-default {} {
   if {[shopping-list-header]} return
-  set base [wapp-param BASE_URL]
+  set base [wapp-param SCRIPT_NAME]
   if {[wapp-param-exists del]} {
     set id [expr {[wapp-param del]+0}]
     db eval {
@@ -50,7 +50,7 @@ proc wapp-default {} {
   if {$cnt} {wapp-subst {<hr>\n}}
   wapp-trim {
     <p><form method="GET" action="%url($base/list)">
-    <input type="text" width="20" name="add">
+    <input type="text" width="20" name="add">&nbsp;&nbsp;&nbsp;
     <input class="button" type="submit" value="Add"></form>
     <p><a class="button" href="%url($base/common)">Common Purchases</a>
   }
@@ -66,18 +66,18 @@ proc wapp-default {} {
   shopping-list-footer
 }
 proc shopping-list-header {} {
-  set base [wapp-param BASE_URL]
   wapp-trim {
     <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link href="%url($base/style.css)" rel="stylesheet">
+    <link href="%url([wapp-param SCRIPT_NAME]/style.css)" rel="stylesheet">
     <title>Shopping List</title>
     </head><body>
     <h1>Shopping List</h1>
   }
   sqlite3 db $::DBFILE
+  db timeout 1000
   db eval BEGIN
   if {[wapp-param-exists logout]} {
     wapp-clear-cookie shopping-list-login
@@ -108,7 +108,7 @@ proc shopping-list-footer {} {
 }
 proc wapp-page-common {} {
   if {[shopping-list-header]} return
-  set base [wapp-param BASE_URL]
+  set base [wapp-param SCRIPT_NAME]
   wapp-subst {<p><a class="button" href="%url($base/list)">Go Back</a>}
   db eval {SELECT x FROM
              (SELECT DISTINCT x FROM done ORDER BY delid DESC LIMIT 30)
@@ -120,8 +120,16 @@ proc wapp-page-common {} {
   }
   shopping-list-footer
 }
+proc wapp-page-env {} {
+  wapp-trim {
+    <html>
+    <h1>CGI Environment</h1>
+    <pre>%html([wapp-debug-env])</pre>
+  }
+}
 proc wapp-page-style.css {} {
   wapp-mimetype text/css
+  wapp-cache-control max-age=3600
   wapp-trim {
      .button {
       font-size: 80%;
