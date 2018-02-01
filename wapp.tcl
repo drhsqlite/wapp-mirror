@@ -771,7 +771,6 @@ proc wappInt-handle-request {chan useCgi} {
         set x [zlib gzip $reply]
         set reply $x
         puts $chan "Content-Encoding: gzip\r"
-        fconfigure $chan -translation binary
       }
     }
   } else {
@@ -779,6 +778,7 @@ proc wappInt-handle-request {chan useCgi} {
   }
   puts $chan "Content-Length: [string length $reply]\r"
   puts $chan \r
+  fconfigure $chan -translation binary
   puts $chan $reply
   flush $chan
   wappInt-close-channel $chan
