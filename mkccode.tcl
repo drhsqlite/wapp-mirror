@@ -64,8 +64,13 @@ while {1} {
       while {1} {
         set line [gets $in2]
         if {[eof $in2]} break
-        set x [string map "\\\\ \\\\\\\\ \\\" \\\\\"" $line]
-        puts "\"$x\\n\""
+        if {[regexp {^\s*#} $line]} {
+          set x [string map {*/ *\\057} $line]
+          puts "/* $x */"
+        } else {
+          set x [string map "\\\\ \\\\\\\\ \\\" \\\\\"" $line]
+          puts "\"$x\\n\""
+        }
       }
     } else {
       puts [read $in2]

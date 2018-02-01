@@ -84,8 +84,11 @@ proc wapp-page-fullenv {} {
   if {[dict exists $wapp showhdr]} {
     wapp " checked"
   }
-  wapp "> Var1\n"
-  wapp "<input type='submit' name='s1' value='Go'>\n"
+  # Deliberately unsafe calls to wapp-subst and wapp-trim, added here
+  # to test wapp-safety-check
+  #
+  wapp-subst "> Var1\n"
+  wapp-trim "<input type='submit' name='s1' value='Go'>\n"
   wapp "<input type='hidden' name='hidden-parameter-1' "
   wapp "value='the long value / of ?$ hidden-1..<hi>'>\n"
   wapp "</form>"
@@ -144,7 +147,11 @@ proc wapp-page-encodings {} {
 proc wapp-page-errorout {} {
   wapp "<h1>Intentially generate an error</h1>\n"
   wapp "<p>This test should be ignored by the error handler\n"
+  # The following line deliberately throws an error to test the
+  # error recovering logic within Wapp
   wapp $noSuchVariable
+  wapp "This is a $test of wapp-safety-check"
+  wapp "This is another [test of] wapp-safety-check"
   wapp "<p>After the error\n"
 }
 proc wapp-page-csptest {} {

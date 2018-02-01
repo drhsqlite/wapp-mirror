@@ -26,14 +26,30 @@ proc wapp {txt} {
   dict append wapp .reply $txt
 }
 
-############################ Begin Deprecated Interfaces ######################
 # Add text to the page under construction.  Do no escaping on the text.
+#
+# Though "unsafe" in general, there are uses for this kind of thing.
+# For example, if you want to return the complete, unmodified content of
+# a file:
+#
+#         set fd [open content.html rb]
+#         wapp-unsafe [read $fd]
+#         close $fd
+#
+# You could do the same thing using ordinary "wapp" instead of "wapp-unsafe".
+# The difference is that wapp-safety-check will complain about the misuse
+# of "wapp", but it assumes that the person who write "wapp-unsafe" understands
+# the risks.
+#
+# Though occasionally necessary, the use of this interface should be minimized.
 #
 proc wapp-unsafe {txt} {
   global wapp
   dict append wapp .reply $txt
 }
 
+
+############################ Begin Deprecated Interfaces ######################
 # Append text after escaping it for HTML.
 #
 # The following commands are the same:
@@ -290,8 +306,8 @@ proc wapp-content-security-policy {val} {
 }
 
 # Examine the bodys of all procedures in this program looking for
-# unsafe calls to "wapp".  Return a text string containing warnings.
-# Return an empty string if all is ok.
+# unsafe calls to various Wapp interfaces.  Return a text string
+# containing warnings. Return an empty string if all is ok.
 #
 # This routine is advisory only.  It misses some constructs that are
 # dangerous and flags others that are safe.
@@ -308,8 +324,8 @@ proc wapp-safety-check {} {
       } {
         append res "$p:$ln: unsafe \"wapp\" call: \"[string trim $x]\"\n"
       }
-      if {[regexp {^[ \t]*wapp-subst[ \t]+[^\173]} $x]} {
-        append res "$p:$ln: unsafe \"wapp-subst\" call: \"[string trim $x]\"\n"
+      if {[regexp {^[ \t]*wapp-(subst|trim)[ \t]+[^\173]} $x all cx]} {
+        append res "$p:$ln: unsafe \"wapp-$cx\" call: \"[string trim $x]\"\n"
       }
     }
   }
@@ -372,6 +388,16 @@ proc wapp-start {arglist} {
           set uri [wapp-param BASE_URL][wapp-param PATH_INFO]
           if {$q!=""} {append uri ?$q}
           puts $uri
+        }
+      }
+      -lint {
+        set res [wapp-safety-check]
+        if {$res!=""} {
+          puts "Potential problems in this code:"
+          puts $res
+          exit 1
+        } else {
+          exit
         }
       }
       -D*=* {

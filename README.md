@@ -378,6 +378,12 @@ on Wapp:
      This routine returns text that describes all of the Wapp parameters.
      Use it to get a parameter dump for troubleshooting purposes.
 
+  +  **wapp-unsafe** _TEXT_  
+     Add _TEXT_ to the web page under construction even though _TEXT_ does
+     contain TCL variable and command substitutions.  The application developer
+     must ensure that the variable and command substitutions does not allow
+     XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
+     preferred in most situations.
 
 The following additional interfaces are envisioned, but are not yet
 implemented:
@@ -409,13 +415,6 @@ implemented:
 
 The following interfaces are deprecated.  They currently exist for
 compatibility but might disappear at any moment.
-
-  +  **wapp-unsafe** _TEXT_  
-     Add _TEXT_ to the web page under construction even though _TEXT_ does
-     contain TCL variable and command substitutions.  The application developer
-     must ensure that the variable and command substitutions does not allow
-     XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
-     preferred in most situations.
 
   +  **wapp-escape-html** _TEXT_  
      Add _TEXT_ to the web page under construction after first escaping any
