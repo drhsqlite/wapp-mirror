@@ -778,7 +778,6 @@ proc wappInt-handle-request {chan useCgi} {
   }
   puts $chan "Content-Length: [string length $reply]\r"
   puts $chan \r
-  fconfigure $chan -translation binary
   puts $chan $reply
   flush $chan
   wappInt-close-channel $chan
@@ -826,6 +825,7 @@ proc wappInt-handle-cgi-request {} {
     fconfigure stdin -translation binary
     dict set wapp CONTENT [read stdin $len]
   }
+  fconfigure stdout -translation binary
   wappInt-handle-request stdout 1
 }
 
