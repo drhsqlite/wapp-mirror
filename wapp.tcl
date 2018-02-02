@@ -717,7 +717,7 @@ proc wappInt-handle-request {chan useCgi} {
   wappInt-trace
   set mname [dict get $wapp PATH_HEAD]
   if {[catch {
-    if {$mname!="" && [llength [info commands wapp-page-$mname]]>0} {
+    if {$mname!="" && [llength [info proc wapp-page-$mname]]>0} {
       wapp-page-$mname
     } else {
       wapp-default
@@ -726,10 +726,10 @@ proc wappInt-handle-request {chan useCgi} {
     wapp-reset
     wapp-reply-code "500 Internal Server Error"
     wapp-mimetype text/html
-    wapp "<h1>Wapp Application Error</h1>\n"
-    wapp "<pre>\n"
-    wapp-escape-html $::errorInfo
-    wapp "</pre>\n"
+    wapp-trim {
+      <h1>Wapp Application Error</h1>
+      <pre>%html($::errorInfo)</pre>
+    }
     dict unset wapp .new-cookies
   }
 
