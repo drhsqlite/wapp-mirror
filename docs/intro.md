@@ -155,8 +155,9 @@ The application script first loads the Wapp code itself using
 the "package require" at the top.  (Some applications may choose
 to substitute "source wapp.tcl" to accomplish the same thing.)
 Next the application defines various procs that will generate the
-replies to HTTP requests.  Differ procs are invoked based on the
+replies to HTTP requests.  Different procs are invoked based on the
 first element of the URI past the Wapp script name.  Finally,
 the "wapp-start" routine is called to start Wapp running.  The
-"wapp-start" routine never returns, so it should be the very last
-command in the application script.
+"wapp-start" routine never returns (or in the case of CGI, it only
+returns after the HTTP request has been completely processed), 
+so it should be the very last command in the application script.

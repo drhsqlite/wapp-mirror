@@ -34,8 +34,8 @@ The following is a complete list of the public interface procs in Wapp:
      "%html(...)", "%url(...)", "%qp(...)", "%string(...)", and
      "%unsafe(...)".  The substitutions are escaped (except in the case of
      "%unsafe(...)") so that the result is safe for inclusion within the
-     body of an HTML document, a URL, a query parameter, or a javascript
-     string literal, respectively.
+     body of an HTML document, a URL, a query parameter, or a javascript or
+     JSON string literal, respectively.
 
   +  **wapp-trim** _TEXT_  
      Just like wapp-subst, this routine appends _TEXT_ to the web page

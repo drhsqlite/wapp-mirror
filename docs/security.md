@@ -35,10 +35,10 @@ Security features in Wapp include the following:
 
   4.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
       automatically escape generated text so that it is safe for inclusion
-      within HTML, within a javascript string literal, as a URL, or as
-      the value of a query parameter. As long as the application programmer
-      is careful to always use "wapp-subst" and/or "wapp-trim" to generate
-      replies, there is little risk of injection attacks.
+      within HTML, within a javascript or JSON string literal, as a URL,
+      or as the value of a query parameter. As long as the application
+      programmer is careful to always use "wapp-subst" and/or "wapp-trim"
+      to generate replies, there is little risk of injection attacks.
 
   5.  If the application is launched on a command-line with the --trim
       option, then instead of running the application, Wapp scans the
