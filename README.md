@@ -18,11 +18,11 @@ Wapp has the following advantages:
 2.0 The Problem That Wapp Attempts To Solve
 -------------------------------------------
 
-On your larger website, do you ever have a situation where you need
+Do you ever have a situation where you need
 a simple script to provide a list of files (such as on a download page),
 or small app to manage conference room scheduling for the office, or
 a few simple pages to monitor or manage the status of a server?
-These sorts of problems are traditionally handled using ad-hoc
+These sorts of problems are traditionally handled with ad-hoc
 CGI scripts implemented using libraries that provide utilities
 for decoding the HTTP request and safely encoding the reply.  This
 presents a number of problems:
