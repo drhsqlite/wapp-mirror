@@ -4,547 +4,87 @@ Wapp - A Web-Application Framework for TCL
 1.0 Introduction
 ----------------
 
-Wapp is a lightweight framework that simplifies the construction
-of web application written in TCL. The same Wapp-based
-application can be launched in multiple ways:
+Wapp is a framework for writing utility web applications in TCL.
+Wapp has the following advantages:
 
-  1.  From the command-line, with automatic web-browser startup
+  *   Simple to use
+  *   A complete application in a single short script file
+  *   Robust against attack
+  *   Efficient
+  *   Trival to enhance and maintain
+  *   Cross-platform - works with any web server, or stand-alone
 
-  2.  As a stand-alone web server
 
-  3.  As a CGI script
+2.0 The Problem That Wapp Attempts To Solve
+-------------------------------------------
 
-  4.  As an SCGI program
+On your larger website, do you ever have a situation where you need
+a simple script to provide a list of files (such as on a download page),
+or small app to manage conference room scheduling for the office, or
+a few simple pages to monitor or manage the status of a server?
+These sorts of problems are traditionally handled using ad-hoc
+CGI scripts implemented using libraries that provide utilities
+for decoding the HTTP request and safely encoding the reply.  This
+presents a number of problems:
 
-All four methods use the same application code and present the same
-interface to the application user.  An application can be developed on
-the desktop using stand-alone mode (1), then deployed as a stand-alone
-server (2), or a CGI script (3), or as an SCGI program (4).
+  *   A single application typically involves multiple files.  There
+      will be CSS and javascript files and other resources, plus at
+      least one file for each distinct URI serviced by the application.
+      This makes long-term maintenance is difficult because people lose
+      track of which files in the web hierarchy belong to which applications.
+
+  *   The implementation will typically only work with a single
+      stack.  Case in point:  the web interface for the MailMan
+      mailing list manager only works on Apache, so if you are running
+      something different you are out of luck.
+
+  *   Decoding HTTP parameters safely, and encoding HTML and Javascript
+      safely, so as to avoid injection attacks, requires great
+      care on the part of the application developer.  A single slip-up
+      can result in a vulnerability.
+
+Wapp seeks to overcome these problems by providing a mechanism to create
+powerful applications contained within a single file of easily-readable
+TCL script.  Deployment options are flexible:
+
+  1.  During development, a Wapp application can be run from the
+      command-line, using a built-in web server, and automatically
+      bringing up a page in the developers web-browser that shows
+      the start page of the application.
+
+  2.  The built-in web-server in Wapp can also be used in deployment
+      by having it listen on a low-numbered port and on public facing
+      IP addresses.
+
+  3.  Wapp applications can be run as CGI on systems like Apache.
+
+  4.  Wapp applications can be run as SCGI on systems like Nginx.
+
+All four deployment options use the same application code and present the
+same interface to the application user.  Method (1) is normally used during
+development and maintenance, then the single script file that implements
+the application is pushed out to servers for deployment using one of 
+options (2), (3), or (4).  In this way, Wapp applications are easy to 
+manage and are not tied to any particular web stack.
 
 Wapp applications are inheriently resistant against XSS and CSRF attacks.
-See the "Security Considerations" section below for further details on
-the attack resistance of Wapp applications.
+Safety features such as safe parameter decoding and HTML encoding and
+Content Security Policy (CSP) are enabled by default.  Developers can
+spend more time focusing on the application, and less time worrying about
+whether or not they have introduced some security hole by failing to 
+safely encode or decode data.
 
-2.0 Hello World!
-----------------
-
-Wapp applications are easy to develop.  A hello-world program is as follows:
-
->
-    #!/usr/bin/tclsh
-    package require wapp
-    proc wapp-default {req} {
-       wapp-subst {<h1>Hello, World!</h1>\n}
-    }
-    wapp-start $::argv
-
-Every Wapp application defines one or more procedures that accept HTTP
-requests and generate appropriate replies.
-For an HTTP request where the initial portion of the URI path is "abcde", the
-procedure named "wapp-page-abcde" will be invoked to construct the reply.
-If no such procedure exists, "wapp-default" is invoked instead.  The latter
-technique is used for the hello-world example above.
-
-The procedure generates a reply using one or more calls to the "wapp-subst"
-command.  Each "wapp-subst" command appends new text to the reply, applying
-various substitutions as it goes.  The only substitution in this example is
-the \\n at the end of the line.
-
-The "wapp-start" command starts up the application.
-
-To run this application, copy the code above into a file named "main.tcl"
-and then enter the following command:
-
->
-    tclsh main.tcl
-
-That command will start up a web-server bound to the loopback
-IP address, then launch a web-browser pointing at that web-server.
-The result is that the "Hello, World!" page will automatically
-appear in your web browser.
-
-To run this same program as a traditional web-server on TCP port 8080, enter:
-
->
-    tclsh main.tcl --server 8080
-
-Here the built-in web-server listens on all IP addresses and so the
-web page is available on other machines.  But the web-broswer is not
-automatically started in this case, so you will have to manually enter
-"http://localhost:8080/" into your web-browser in order to see the page.
-
-To run this program as CGI, put the main.tcl script in your web-servers
-file hierarchy, in the appropriate place for CGI scripts, and make any
-other web-server specific configuration changes so that the web-server
-understands that the main.tcl file is a CGI script.  Then point your
-web-browser at that script.
-
-Run the hello-world program as SCGI like this:
-
->
-    tclsh main.tcl --scgi 9000
-
-Then configure your web-server to send SCGI requests to TCL port 9000
-for some specific URI, and point your web-browser at that URI.
-
-3.0 A Slightly Longer Example
------------------------------
-
-Wapp keeps track of various "parameters" or "params" that describe
-each HTTP request.  Those parameters are accessible using routines
-like "wapp-param _NAME_"
-The following sample program gives some examples:
-
->
-    package require wapp
-    proc wapp-default {} {
-      set B [wapp-param BASE_URL]
-      wapp-trim {
-        <h1>Hello, World!</h1>
-        <p>See the <a href='%html($B)/env'>Wapp
-        Environment</a></p>
-      }
-    }
-    proc wapp-page-env {} {
-      wapp-allow-xorigin-params
-      wapp-subst {<h1>Wapp Environment</h1>\n<pre>\n}
-      foreach var [lsort [wapp-param-list]] {
-        if {[string index $var 0]=="."} continue
-        wapp-subst {%html($var) = %html([list [wapp-param $var]])\n}
-      }
-      wapp-subst {</pre>\n}
-    }
-    wapp-start $::argv
-
-In this application, the default "Hello, World!" page has been extended
-with a hyperlink to the /env page.  The "wapp-subst" command has been
-replaced by "wapp-trim", which works the same way with the addition that
-it removes surplus whitespace from the left margin, so that the generated
-HTML text does not come out indented.  The "wapp-trim" and "wapp-subst"
-commands in this example use "%html(...)" substitutions.  The "..." argument 
-is expanded using the usual TCL rules, but then the result is escaped so
-that it is safe to include in an HTML document.  Other supported
-substitutions are "%url(...)" for
-URLs on the href= and src= attributes of HTML entities, "%qp(...)" for
-query parameters, "%string(...)" for string literals within javascript,
-and "%unsafe(...)" for direct literal substitution.  As its name implies,
-the %unsafe() substitution should be avoid whenever possible.
-
-The /env page is implemented by the "wapp-page-env" proc.  This proc
-generates HTML that describes all of the query parameters. Parameter names
-that begin with "." are for internal use by Wapp and are skipped
-for this display.  Notice the use of "wapp-subst" to safely escape text
-for inclusion in an HTML document.
-
-4.0 Parameters
---------------
-
-To better understand Wapp parameters, try running the previous
-sample program, but extend the /env URL with extra path elements and query
-parameters.  For example:
-<http://localhost:8080/env/longer/path?q1=5&title=hello+world%21>
-
-Notice how the query parameters in the input URL are decoded and become
-parameters.  The same thing occurs with POST parameters
-and cookies - they are all converted into parameters accessible
-using the "wapp-param" interface.
-
-4.1 Security By Default
+3.0 Further information
 -----------------------
 
-For security reasons, this automatic decoding of GET and POST parameters
-only occurs if inbound request is from the "same origin" or if the
-special "wapp-allow-xorigin-params" interface is called.  An inbound
-request is from the same origin if it is in response to clicking on a
-hyperlink or form on a page that was generated by the same website.
-Manually typing in a URL does not constitute the "same origin".  Hence,
-in the example above the "wapp-allow-xorigin-params" interface is used
-so that you can manually extend the URL to add new query parameters.
+  *  [Introduction To Writing Wapp Applications](docs/intro.md)
 
-If query parameters can have side effects, then you should omit the
-wapp-allow-xorigin-params call.  Only invoke wapp-allow-xorigin-params
-for web pages that only query information.  Do not invoke 
-wapp-allow-xorigin-params on pages where the parameters can be used
-to change server-side state.
+  *  [Wapp Parameters](docs/params.md)
 
-4.2 Environment Parameters
---------------------------
+  *  [Wapp Commands](docs/commands.md)
 
-Wapp also provides parameters that describe the execution environment.
-These parameter look like CGI environment variables.  To prevent environment
-information from overlapping and overwriting query parameters, all the
-environment information uses upper-case names and all query parameters
-are required to be lower case.  If an input URL contains an upper-case
-query parameter (or POST parameter or cookie), that parameter is silently
-omitted.
+  *  [Security Considerations](docs/security.md)
 
-The following environment parameters are always available:
+  *  [Limitations of Wapp](docs/limitations.md)
 
-  +  **CONTENT\_LENGTH**  
-     The number of bytes of POST data.
-
-  +  **CONTENT\_TYPE**  
-     The mimetype of the POST data.  Usually this is
-     application/x-www-form-urlencoded.
-
-  +  **HTTP\_COOKIE**  
-     The values of all cookies in the HTTP header
-
-  +  **HTTP\_HOST**  
-     The hostname (or IP address) and port that the client used to create
-     the current HTTP request.  This is the first part of the request URL,
-     right after the "http://" or "https://".  The format for this value
-     is "HOST:PORT".  Examples:  "sqlite.org:80" or "127.0.0.1:32172".
-
-  +  **HTTP\_USER\_AGENT**  
-     The name of the web-browser or other client program that generated
-     the current HTTP request.
-
-  +  **HTTPS**  
-     If the HTTP request arrived of SSL (via "https://"), then this variable
-     has the value "on".  For an unencrypted request ("http://"), this
-     variable does not exist.
-
-  +  **PATH\_INFO**  
-     The part of the URL path that follows the SCRIPT\_NAME.  For all modes
-     other than CGI, this is exactly the URL pathname, though with the
-     query parameters removed.  PATH_INFO begins with a "/".
-
-  +  **REMOTE\_ADDR**  
-     The IP address from which the HTTP request originated.
-
-  +  **REMOTE\_PORT**  
-     The TCP port from which teh HTTP request originated.
-
-  +  **REQUEST\_METHOD**  
-     "GET" or "HEAD" or "POST"
-
-  +  **REQUEST\_URI**  
-     The URL for the inbound request, without the initial "http://" or
-     "https://" and without the HTTP\_HOST.  This variable is the same as
-     the concatenation of $SCRIPT\_NAME and $PATH\_INFO.
-
-  +  **SCRIPT_NAME**  
-     In CGI mode, this is the name of the CGI script in the URL.  In other
-     words, this is the initial part of the URL path that identifies the
-     CGI script.  For other modes, this variable is an empty string.
-
-
-All of the above are standard CGI environment values.
-The following are supplemental environment parameters are added by Wapp:
-
-
-  +  **BASE\_URL**  
-     The text of the request URL through the SCRIPT\_NAME.  This value can
-     be prepended to hyperlinks to ensure that the correct page is reached by
-     those hyperlinks.
-
-  +  **CONTENT**  
-     The raw POST data text.
-
-  +  **PATH\_HEAD**  
-     The first element in the PATH\_INFO.  The value of PATH\_HEAD is used to
-     select one of the "wapp-page-XXXXX" commands to run in order to generate
-     the output web page.
-
-  +  **PATH\_TAIL**  
-     All of PATH\_INFO that follows PATH\_HEAD.
-
-  +  **SAME\_ORIGIN**  
-     This value is either "1" or "0" depending on whether the current HTTP
-     request is a follow-on to another request from this same website or not.
-     Query parameters and POST parameters are usually only decoded and added
-     to Wapp's parameter list if SAME\_ORIGIN is 1.  If a webpage implemented
-     by Wapp needs access to query parameters for a cross-origin request, then
-     it should invoke the "wapp-allow-xorigin-params" interface to explicitly
-     signal that cross-origin parameters are safe for that page.
-
-  +  **SELF\_URL**  
-     The URL for the current page, stripped of query parameter. This is
-     useful for filling in the action= attribute of forms.
-
-
-### 4.1 URL Parsing Example
-
-For the input URL "http://example.com/cgi-bin/script/method/extra/path?q1=5"
-and for a CGI script named "script" in the /cgi-bin/ directory, 
-the following CGI environment values are generated:
-
-  +  **HTTP\_HOST** &rarr; "example.com:80"
-  +  **SCRIPT\_NAME** &rarr; "/cgi-bin/script"
-  +  **PATH\_INFO** &rarr; "/method/extra/path"
-  +  **REQUEST\_URI** &rarr; "/cgi-bin/script/method/extra/path"
-  +  **QUERY\_STRING** &rarr; "q1=5"
-  +  **BASE\_URL** &rarr; "http://example.com/cgi-bin/script"
-  +  **SELF\_URL** &rarr; "http://example.com/cgi-bin/script/method"
-  +  **PATH\_HEAD** &rarr; "method"
-  +  **PATH\_TAIL** &rarr; "extra/path"
-
-The first five elements of the example above, HTTP\_HOST through
-QUERY\_STRING, are standard CGI.  The final four elements are Wapp
-extensions.
-
-5.0 Wapp Commands
------------------
-
-The following utility commands are available for use by applications built
-on Wapp:
-
-  +  **wapp-start** _ARGLIST_  
-     Start up the application.  _ARGLIST_ is typically the value of $::argv,
-     though it might be some subset of $::argv if the containing application
-     has already processed some command-line parameters for itself.
-
-  +  **wapp** _TEXT_  
-     Add _TEXT_ to the web page output currently under construction.  _TEXT_
-     must not contain any TCL variable or command substitutions.
-
-  +  **wapp-subst** _TEXT_  
-     The _TEXT_ argument should be enclosed in {...} to prevent substitutions.
-     The "wapp-subst" command itself will do all necessary backslash
-     substitutions.  Command and variable substitutions only occur within
-     "%html(...)", "%url(...)", "%qp(...)", "%string(...)", and
-     "%unsafe(...)".  The substitutions are escaped (except in the case of
-     "%unsafe(...)") so that the result is safe for inclusion within the
-     body of an HTML document, a URL, a query parameter, or a javascript
-     string literal, respectively.
-
-  +  **wapp-trim** _TEXT_  
-     Just like wapp-subst, this routine appends _TEXT_ to the web page
-     under construction, using the %html, %url, %qp, %string, and %unsafe
-     substitutions.  The difference is that this routine also removes
-     surplus whitespace from the left margin, so that if the _TEXT_
-     argument is intended in the source script, it will appear at the
-     left margin in the generated output.
-
-  +  **wapp-param** _NAME_ _DEFAULT_  
-     Return the value of the query parameter or environment variable _NAME_,
-     or return _DEFAULT_ if there is no such query parameter or environment
-     variable.  If _DEFAULT_ is omitted, then it is an empty string.
-
-  +  **wapp-set-param** _NAME_ _VALUE_  
-     Change the value of parameter _NAME_ to _VALUE_.  If _NAME_ does not
-     currently exist, it is created.
-
-  +  **wapp-param-exists** _NAME_  
-     Return true if and only if a parameter called _NAME_ exists for the
-     currentn request.
-
-  +  **wapp-param-list** _NAME_  
-     Return a TCL list containing the names of all parameters for the current
-     request.  Note that there are several parameters that Wapp uses
-     internally.  Those internal-use parameters all have names that begin
-     with ".".
-
-  +  **wapp-allow-xorigin-params**  
-     Query parameters and POST parameters are usually only parsed and added
-     to the set of parameters available to "wapp-param" for same-origin
-     requests.  This restriction helps prevent cross-site request forgery
-     (CSRF) attacks.  Query-only web pages for which it is safe to accept
-     cross-site query parameters can invoke this routine to cause query
-     parameters to be decoded.
-
-  +  **wapp-mimetype** _MIMETYPE_  
-     Set the MIME-type for the generated web page.  The default is "text/html".
-
-  +  **wapp-reply-code** _CODE_  
-     Set the reply-code for the HTTP request.  The default is "200 Ok".
-
-  +  **wapp-redirect** _TARGET-URL_  
-     Cause an HTTP redirect to the specified URL.
-
-  +  **wapp-reset**  
-     Reset the web page under construction back to an empty string.
-
-  +  **wapp-set-cookie** _NAME_ _VALUE_  
-     Cause the cookie _NAME_ to be set to _VALUE_.
-
-  +  **wapp-clear-cookie** _NAME_  
-     Erase the cookie _NAME_.
-
-  +  **wapp-safety-check**  
-     Examine all TCL procedures in the application and report errors about
-     unsafe usage of "wapp".
-
-  +  **wapp-cache-control** _CONTROL_  
-     The _CONTROL_ argument should be one of "no-cache", "max-age=N", or
-     "private,max-age=N", where N is an integer number of seconds.
-
-  +  **wapp-content-security-policy** _POLICY_  
-     Set the Content Security Policy (hereafter "CSP") to _POLICY_.  The
-     default CSP is "default-src 'self'", which is very restriction.  The
-     default CSP disallows (a) loading any resources from other origins,
-     (b) the use of eval(), and (c) in-line javascript or CSS of any kind.
-     Set _POLICY_ to "off" to completely disable the CSP mechanism.  Or
-     specify some other policy suitable for the needs of the application.
-
-  +  **wapp-debug-env**  
-     This routine returns text that describes all of the Wapp parameters.
-     Use it to get a parameter dump for troubleshooting purposes.
-
-  +  **wapp-unsafe** _TEXT_  
-     Add _TEXT_ to the web page under construction even though _TEXT_ does
-     contain TCL variable and command substitutions.  The application developer
-     must ensure that the variable and command substitutions does not allow
-     XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
-     preferred in most situations.
-
-The following additional interfaces are envisioned, but are not yet
-implemented:
-
-  +  **wapp-send-hex** _HEX_  
-     Cause the HTTP reply to be binary that is constructed from the
-     hexadecimal text in the _HEX_ argument.  Whitespace in _HEX_ is ignored.
-     This command is useful for returning small images from a pure script
-     input.  The "wapp-file-to-hex" command can be used at development time
-     to generate appropriate _HEX_ for an image file.
-
-  +  **wapp-etag** _ETAG_  
-     Set the expiration tag for the web page.
-
-  +  **wapp-send-file** _FILENAME_  
-     Make the content of the file _FILENAME_ be the HTTP reply.
-
-  +  **wapp-send-query** _DB_ _SQL_  
-     Run the SQLite query _SQL_ on the _DB_ database connection and make the
-     HTTP reply be the value of the first column of the first row in the result.
-
-  +  **wapp-debug-port** _PORT_  
-     For debugging use only: open a listening TCP socket on _PORT_ and run
-     an interactive TCL shell on connections to that port.  This allows for
-     interactive debugging of a running instance of the Wapp server.  This
-     command is a no-op for short-lived CGI programs, obviously.  Also, this
-     command should only be used during debugging, as otherwise it introduces
-     a severe security vulnerability into the application.
-
-The following interfaces are deprecated.  They currently exist for
-compatibility but might disappear at any moment.
-
-  +  **wapp-escape-html** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     HTML markup contained with _TEXT_.  This command is equivalent to
-     "wapp-subst {%html(_TEXT_)}".
-
-
-  +  **wapp-escape-url** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     characters so that the result is safe to include as the value of a
-     query parameter on a URL.  This command is equivalent to
-     "wapp-subst {%url(_TEXT_)}".
-
-6.0 Security Considerations
----------------------------
-
-Wapp strives for security by default.  Applications can disable security
-features on an as-needed basis, but the default setting for security
-features is always "on".
-
-Security features in Wapp include the following:
-
-  1.  The default
-      [Content Security Policy](https://en.wikipedia.org/wiki/Content_Security_Policy)
-      of "CSP"
-      for all Wapp applications is _default\_src 'self'_.  In that mode,
-      resources must all be loaded from the same origin, the use of
-      eval() and similar commands in javascript is prohibited, and
-      no in-line javascript or CSS is allowed.  These limitations help
-      keep application safe from 
-      [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting)
-      attacks, even in the face of application coding errors. If these
-      restrictions are too severe for an application, the CSP can be
-      relaxed using the "wapp-content-security-policy" command.
-
-  2.  Access to GET query parameters and POST parameters is prohibited
-      unless the origin of the request is the application itself, as
-      determined by the Referrer field in the HTTP header. This feature
-      helps to prevent
-      [Cross-site Request Forgery](https://en.wikipedia.org/wiki/Cross-site_request_forgery)
-      attacks. The "wapp-allow-xorigin-params" command can be used to
-      disable this protection on a case-by-case basis.
-
-  3.  Cookies, query parameters, and POST parameters are automatically
-      decoded before they ever reach application code. There is no risk
-      that the application program will forget a decoding step or
-      accidently miscode a decoding operation.
-
-  4.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
-      automatically escape generated text so that it is safe for inclusion
-      within HTML, within a javascript string literal, as a URL, or as
-      the value of a query parameter. As long as the application programmer
-      is careful to always use "wapp-subst" and/or "wapp-trim" to generate
-      replies, there is little risk of injection attacks.
-
-  5.  If the application is launched on a command-line with the --trim
-      option, then instead of running the application, Wapp scans the
-      application code looking for constructs that are unsafe.  Unsafe
-      constructs include things such as using "wapp-subst" with an argument
-      that is not contained within {...}.
-
-Part of what makes Wapp easy to use is that it helps free application
-developers from the worry of accidently introducing security vulnerabilities
-via programming errors.  Of course, no framework is fool-proof.  Developers
-still must be aware of security.  Wapp does not prevent every error, but
-it does help make writing a secure application easier and less stressful.
-
-
-7.0 Developing Applications Using Wapp
---------------------------------------
-
-You can use whatever development practices you are comformable with.  But
-if you want some hints for getting started, consider the following:
-
-  1.  Compile the "wapptclsh" executable.  You do not need a separate
-      interpreter to run Wapp.  A standard "tclsh" will work fine.  But
-      "wapptclsh" contains the a built-in copy of "wapp.tcl" and it
-      has SQLite compiled in.  We find it convenient to use.  The sequel
-      will assume you have "wapptclsh" somewhere on your $PATH.
-
-  2.  Seed your application using one of the short scripts shown above,
-      or perhaps one of the [examples](/file/examples) in this repository.
-
-  3.  Make a few simple changes to the code.
-
-  4.  Run "wapptclsh yourcode.tcl" to test your changes.  Use the --trace
-      option to list each HTTP request URI as it is encountered.  Use the
-      --lint option to scan the application code for dodgy constructs that
-      must be a security problem.
-
-  5.  Goto 3.  Continue until your application is working.
-
-  6.  Move the "yourcode.tcl" file to your server for deployment.
-
-During the loop between steps (3) and (5), there is no web server sitting
-in between the application and your browser, which means there is no
-translation or interpretation of traffic.  This can help make debugging
-easier.  Also, you can add "puts" commands to the application to get
-interactive debugging information on your screen while the application
-is running.
-
-8.0 Limitations
----------------
-
-Each Wapp process is single-threaded.
-The fileevent command is used to allow accepting multiple simultaneous
-HTTP requests.  However, as soon as a complete request is received, and
-the "wapp-page-NAME" proc runs, all other processing is suspended until 
-that proc completes.
-Hence, a long-running "wapp-page-NAME" proc can cause the system to
-become unresponsive.
-If this is a problem, the Wapp application can be run in CGI mode.
-In CGI mode, the overlying webserver will start a separate Wapp process
-for each request, and there are no limits on the number of simultaneous
-Wapp processes.
-
-The POST data parser for Wapp currently only understands
-application/x-www-form-urlencoded content.  Wapp does not (currently)
-have a decoder for multipart/form-data content.  A multipart/form-data
-decoder might be added in the future.  Or, individual applications can
-implement their own multipart/form-data decoder using the raw POST data
-held in the CONTENT parameter.
-
-9.0 Design Rules
-----------------
-
-All global procs and variables used by Wapp begin with the four character
-prefix "wapp".  Procs and variable intended for internal use begin with
-the seven character prefix "wappInt".
+  *  [Example Applications](/file/examples)
