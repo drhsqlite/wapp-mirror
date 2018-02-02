@@ -123,18 +123,3 @@ The following is a complete list of the public interface procs in Wapp:
      must ensure that the variable and command substitutions does not allow
      XSS attacks.  Avoid using this command.  The use of "wapp-subst" is 
      preferred in most situations.
-
-The following interfaces are deprecated.  They currently exist for
-compatibility but might disappear at any moment.
-
-  +  **wapp-escape-html** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     HTML markup contained with _TEXT_.  This command is equivalent to
-     "wapp-subst {%html(_TEXT_)}".
-
-
-  +  **wapp-escape-url** _TEXT_  
-     Add _TEXT_ to the web page under construction after first escaping any
-     characters so that the result is safe to include as the value of a
-     query parameter on a URL.  This command is equivalent to
-     "wapp-subst {%url(_TEXT_)}".

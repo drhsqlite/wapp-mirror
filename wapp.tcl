@@ -17,9 +17,8 @@
 #   (2)  Indentifiers intended for internal use only begin with "wappInt"
 #
 
-# Add text to the end of the HTTP reply.  wapp and wapp-safe work the
-# same.  The only difference is in how wapp-safety-check deals with these
-# procs during analysis.
+# Add text to the end of the HTTP reply.  No interpretation or transformation
+# of the text is performs.  The argument should be enclosed within {...}
 #
 proc wapp {txt} {
   global wapp
@@ -48,38 +47,18 @@ proc wapp-unsafe {txt} {
   dict append wapp .reply $txt
 }
 
-
-############################ Begin Deprecated Interfaces ######################
-# Append text after escaping it for HTML.
+# Add text to the end of the reply under construction.  The following
+# substitutions are made:
 #
-# The following commands are the same:
+#     %html(...)          Escape text for inclusion in HTML
+#     %url(...)           Escape text for use as a URL
+#     %qp(...)            Escape text for use as a URI query parameter
+#     %string(...)        Escape text for use within a JSON string
+#     %unsafe(...)        No transformations of the text
 #
-#      wapp-escape-html TEXT
-#      wapp-subst %html(TEXT)
-#
-proc wapp-escape-html {txt} {
-  global wapp
-  dict append wapp .reply [string map {& &amp; < &lt; > &gt;} $txt]
-}
-
-# Append text after escaping it for URL query parameters.
-#
-# The following commands are the same:
-#
-#      wapp-escape-url TEXT
-#      wapp-subst %url(TEXT)
-#
-proc wapp-escape-url {txt} {
-  global wapp
-  dict append wapp .reply [wappInt-enc-url $txt]
-}
-########################### End Deprecated Interfaces #########################
-
-# The argument should be in {...}.  Substitions of %html(...) encode ...
-# escaped for safe insertion into HTML.  %url(...) substitions encode the
-# argument for safe insertion into query parameters of URLs.  Backslash
-# substitutions are also performed, but variable substitutions are not,
-# except within %html() and %url().
+# The %unsafe substitution should be avoided whenever possible, obviously.
+# In addition to the substitutions above, the text also does backslash
+# escapes.
 #
 proc wapp-subst {txt} {
   global wapp
@@ -145,7 +124,6 @@ proc wapp-trim {txt} {
   dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
 }
 
-
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns
 # an appropriate %HH encoding for the single character c.  If c is a unicode
 # character, then this routine might return multiple bytes:  %HH%HH%HH
@@ -172,9 +150,6 @@ proc wappInt-decode-url {str} {
   return [subst -novar $str]
 }
 
-# Do URL encoding
-#
-
 # Reset the document back to an empty string.
 #
 proc wapp-reset {} {
@@ -183,6 +158,7 @@ proc wapp-reset {} {
 }
 
 # Change the mime-type of the result document.
+#
 proc wapp-mimetype {x} {
   global wapp
   dict set wapp .mimetype $x
@@ -233,7 +209,7 @@ proc wapp-redirect {uri} {
   wapp-reply-extra Location $uri
 }
 
-# Return the value of a query parameter or environment variable.
+# Return the value of a wapp parameter
 #
 proc wapp-param {name {dflt {}}} {
   global wapp
@@ -241,14 +217,14 @@ proc wapp-param {name {dflt {}}} {
   return [dict get $wapp $name]
 }
 
-# Return the value of a query parameter or environment variable.
+# Return true if a and only if the wapp parameter $name exists
 #
 proc wapp-param-exists {name} {
   global wapp
   return [dict exists $wapp $name]
 }
 
-# Set the value of a parameter
+# Set the value of a wapp parameter
 #
 proc wapp-set-param {name value} {
   global wapp
@@ -352,13 +328,24 @@ proc wapp-debug-env {} {
 #
 #    -scgi $PORT           Listen for SCGI requests on TCP port $PORT
 #
-#    -cgi                  Perform a single CGI request
+#    -cgi                  Handle a single CGI request
 #
 # With no arguments, the behavior is called "auto".  In "auto" mode,
 # if the GATEWAY_INTERFACE environment variable indicates CGI, then run
 # as CGI.  Otherwise, start an HTTP server bound to the loopback address
 # only, on an arbitrary TCP port, and automatically launch a web browser
 # on that TCP port.
+#
+# Additional options:
+#
+#    -trace               "puts" each request URL as it is handled, for
+#                         debugging
+#
+#    -lint                Run wapp-safety-check on the application instead
+#                         of running the application itself
+#
+#    -Dvar=value          Set TCL global variable "var" to "value"
+#
 #
 proc wapp-start {arglist} {
   global env
