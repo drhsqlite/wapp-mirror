@@ -8,14 +8,14 @@ Wapp is a framework for writing web applications in TCL.
 Wapp has the following advantages:
 
   *   Simple to use
-  *   A complete application is contained in a single TCL script
-  *   The Wapp framework itself is also just a single TCL script
-      that is "source"-ed, "package require"-ed, 
-      or even copy/pasted into the application TCL script
   *   Robust against attack
   *   Efficient
   *   Trival to enhance and maintain
   *   Cross-platform - works with any web server, or stand-alone
+  *   A complete application is contained in a single TCL script
+  *   The Wapp framework itself is also just a single TCL script
+      that is "source"-ed, "package require"-ed, 
+      or even copy/pasted into the application TCL script
 
 
 2.0 The Problem That Wapp Attempts To Solve
