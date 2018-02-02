@@ -98,3 +98,5 @@ hole by failing to safely encode or decode content.
   *  [Limitations of Wapp](docs/limitations.md)
 
   *  [Example Applications](/file/examples)
+
+  *  [Real-World Uses Of Wapp](docs/usageexamples.md)
