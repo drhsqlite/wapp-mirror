@@ -318,6 +318,7 @@ proc wapp-debug-env {} {
     if {[string index $var 0]=="."} continue
     append out "$var = [list [dict get $wapp $var]]\n"
   }
+  append out "\[pwd\] = [list [pwd]]\n"
   return $out
 }
 
