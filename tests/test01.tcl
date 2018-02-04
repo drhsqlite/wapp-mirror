@@ -1,7 +1,11 @@
 # Invoke as "tclsh test01.tcl" and then surf the website that pops up
 # to verify the logic in wapp.
 #
-source wapp.tcl
+if {[catch {package require wapp}]} {
+  if {[catch {source wapp.tcl}]} {
+    source ../wapp.tcl
+  }
+}
 proc wapp-default {} {
   global wapp
   set B [wapp-param BASE_URL]
@@ -74,7 +78,7 @@ proc wapp-page-env {} {
   foreach var [lsort [dict keys $wapp]] {
     if {[string index $var 0]=="." &&
          ($var!=".header" || ![dict exists $wapp showhdr])} continue
-    wapp-escape-html "$var = [list [dict get $wapp $var]]\n"
+    wapp-subst {%html($var) = %html([list [wapp-param $var]])\n}
   }
   wapp "</pre>"
   wapp-unsafe "<p><a href='[wapp-param BASE_URL]/'>Home</a></p>\n"
@@ -99,7 +103,7 @@ proc wapp-page-fullenv {} {
   wapp "<pre>\n"
   foreach var [lsort [dict keys $wapp]] {
     if {$var==".reply"} continue
-    wapp-escape-html "$var = [list [dict get $wapp $var]]\n\n"
+    wapp-subst {%html($var) = %html([list [wapp-dict $var]])\n\n}
   }
   wapp "</pre>"
   wapp-subst {<p><a href='%html([dict get $wapp BASE_URL])/'>Home</a></p>\n}
@@ -110,9 +114,11 @@ proc wapp-page-lint {} {
   if {$res==""} {
     wapp "<p>No problems found.</p>\n"
   } else {
-    wapp "<pre>\n"
-    wapp-escape-html $res
-    wapp "</pre>\n"
+    wapp-trim {
+      <pre>
+      %html($res)
+      </pre>
+    }
   }
 }
 proc wapp-page-encodings {} {

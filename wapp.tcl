@@ -509,6 +509,9 @@ proc wappInt-http-readable-unsafe {chan} {
       }
     } elseif {$n==0} {
       # We have reached the blank line that terminates the header.
+      global argv0
+      dict set W SCRIPT_FILENAME $argv0
+      dict set W DOCUMENT_ROOT [file dir $argv0]
       if {[wappInt-parse-header $chan]} {
         catch {close $chan}
         return
@@ -783,6 +786,7 @@ proc wappInt-handle-cgi-request {} {
   foreach key {
     CONTENT_LENGTH
     CONTENT_TYPE
+    DOCUMENT_ROOT
     HTTP_ACCEPT_ENCODING
     HTTP_COOKIE
     HTTP_HOST
@@ -795,6 +799,7 @@ proc wappInt-handle-cgi-request {} {
     REQUEST_METHOD
     REQUEST_URI
     REMOTE_USER
+    SCRIPT_FILENAME
     SCRIPT_NAME
     SERVER_NAME
     SERVER_PORT
