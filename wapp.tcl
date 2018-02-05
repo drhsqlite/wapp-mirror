@@ -511,8 +511,9 @@ proc wappInt-http-readable-unsafe {chan} {
     } elseif {$n==0} {
       # We have reached the blank line that terminates the header.
       global argv0
-      dict set W SCRIPT_FILENAME $argv0
-      dict set W DOCUMENT_ROOT [file dir $argv0]
+      set a0 [file normalize $argv0]
+      dict set W SCRIPT_FILENAME $a0
+      dict set W DOCUMENT_ROOT [file dir $a0]
       if {[wappInt-parse-header $chan]} {
         catch {close $chan}
         return
