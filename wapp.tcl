@@ -400,7 +400,7 @@ proc wapp-start {arglist} {
   }
   if {($mode=="auto"
        && [info exists env(GATEWAY_INTERFACE)]
-       && $env(GATEWAY_INTERFACE)=="CGI/1.0")
+       && [string match CGI/1.* $env(GATEWAY_INTERFACE)])
     || $mode=="cgi"
   } {
     wappInt-handle-cgi-request
