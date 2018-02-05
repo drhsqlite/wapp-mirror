@@ -82,21 +82,26 @@ That page will look something like this:
 
 >**Wapp Environment**
 >
-     BASE_URL = http://127.0.0.1:41824
-     HTTP_ACCEPT_ENCODING = {gzip, deflate}
-     HTTP_HOST = 127.0.0.1:41824
-     HTTP_USER_AGENT = {Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0}
-     PATH_HEAD = {}
-     PATH_INFO = {}
-     PATH_TAIL = {}
-     QUERY_STRING = {}
-     REMOTE_ADDR = 127.0.0.1
-     REMOTE_PORT = 59956
-     REQUEST_METHOD = GET
-     REQUEST_URI = /
-     SAME_ORIGIN = 0
-     SCRIPT_NAME = {}
-     SELF_URL = http://127.0.0.1:41824/
+    BASE_URL = http://127.0.0.1:33999
+    DOCUMENT_ROOT = /home/drh/wapp/examples
+    HTTP_ACCEPT_ENCODING = {gzip, deflate}
+    HTTP_COOKIE = {env-cookie=simple}
+    HTTP_HOST = 127.0.0.1:33999
+    HTTP_USER_AGENT = {Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0}
+    PATH_HEAD = {}
+    PATH_INFO = {}
+    PATH_TAIL = {}
+    QUERY_STRING = {}
+    REMOTE_ADDR = 127.0.0.1
+    REMOTE_PORT = 53060
+    REQUEST_METHOD = GET
+    REQUEST_URI = /
+    SAME_ORIGIN = 0
+    SCRIPT_FILENAME = /home/drh/wapp/examples/env.tcl
+    SCRIPT_NAME = {}
+    SELF_URL = http://127.0.0.1:33999/
+    env-cookie = simple
+    [pwd] = /home/drh/wapp
 
 Try this.  Then modify the URL by adding new path elements and query
 parameters to see how this affects the Wapp parameters.
@@ -139,32 +144,42 @@ are required to be lower case.  If an input URL contains an upper-case
 query parameter (or POST parameter or cookie), that parameter is silently
 omitted.
 
-The following CGI parameters are always available:
+The following CGI parameters are available:
 
   +  **CONTENT\_LENGTH**  
      The number of bytes of POST data.
+     This parameter is omitted for non-POST requests.
 
   +  **CONTENT\_TYPE**  
      The mimetype of the POST data.  Usually this is
      application/x-www-form-urlencoded.
+     This parameter is omitted for non-POST requests.
+
+  +  **DOCUMENT\_ROOT**  
+     For CGI or SCGI, this parameter is the name a directory on the server
+     that is the root of the static content tree.  When running a Wapp script
+     using the built-in web server, this is the name of the directory that
+     contains the script.
 
   +  **HTTP\_COOKIE**  
-     The values of all cookies in the HTTP header
+     The values of all cookies in the HTTP header.
+     This parameter is omitted if there are no cookies.
 
   +  **HTTP\_HOST**  
      The hostname (or IP address) and port that the client used to create
      the current HTTP request.  This is the first part of the request URL,
      right after the "http://" or "https://".  The format for this value
      is "HOST:PORT".  Examples:  "sqlite.org:80" or "127.0.0.1:32172".
+     Some servers omit the port number if it has a value of 80.
 
   +  **HTTP\_USER\_AGENT**  
      The name of the web-browser or other client program that generated
-     the current HTTP request.
+     the current HTTP request, as reported in the User-Agent header.
 
   +  **HTTPS**  
      If the HTTP request arrived of SSL (via "https://"), then this variable
      has the value "on".  For an unencrypted request ("http://"), this
-     variable does not exist.
+     parameter is undefined.
 
   +  **PATH\_INFO**  
      The part of the URL path that follows the SCRIPT\_NAME.  For all modes
@@ -185,10 +200,16 @@ The following CGI parameters are always available:
      "https://" and without the HTTP\_HOST.  This variable is the same as
      the concatenation of $SCRIPT\_NAME and $PATH\_INFO.
 
-  +  **SCRIPT_NAME**  
+  +  **SCRIPT\_FILENAME**  
+     The full pathname on the server for the Wapp script.  This parameter
+     is usually undefined for SCGI.
+
+  +  **SCRIPT\_NAME**  
      In CGI mode, this is the name of the CGI script in the URL.  In other
      words, this is the initial part of the URL path that identifies the
-     CGI script.  For other modes, this variable is an empty string.
+     CGI script.  When using the built-in webserver, the value of this
+     parameter is an empty string.  For SCGI, this parameter is normally
+     undefined.
 
 
 All of the above are standard CGI environment values.
@@ -244,3 +265,17 @@ the following CGI environment values are generated:
 The first five elements of the example above, HTTP\_HOST through
 QUERY\_STRING, are standard CGI.  The final four elements are Wapp
 extensions.
+
+### 3.2 Undefined Parameters When Using SCGI on Nginx
+
+Some of the CGI parameters are undefined by default when using CGI mode
+with Nginx.  If these CGI parameters are needed by the application, then
+values must be assigned in the Nginx configuration file.  For example:
+
+>
+    location /scgi/ {
+       include scgi_params;
+       scgi_pass localhost:9000;
+       scgi_param SCRIPT_NAME "/scgi";
+       scgi_param SCRIPT_FILENAME "/home/www/scgi/script1.tcl";
+    }
