@@ -521,22 +521,32 @@ proc wappInt-decode-query-params {} {
       }
     }
   }
-  if {[dict exists $wapp CONTENT_TYPE]
-   && [dict get $wapp CONTENT_TYPE]=="application/x-www-form-urlencoded"
-   && [dict exists $wapp CONTENT]
-  } {
-    foreach qterm [split [string trim [dict get $wapp CONTENT]] &] {
-      set qsplit [split $qterm =]
-      set nm [lindex $qsplit 0]
-      if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
-        dict set wapp $nm [wappInt-decode-url [lindex $qsplit 1]]
+  if {[dict exists $wapp CONTENT_TYPE] && [dict exists $wapp CONTENT]} {
+    set ctype [dict get $wapp CONTENT_TYPE]
+    if {$ctype=="application/x-www-form-urlencoded"} {
+      foreach qterm [split [string trim [dict get $wapp CONTENT]] &] {
+        set qsplit [split $qterm =]
+        set nm [lindex $qsplit 0]
+        if {[regexp {^[a-z][-a-z0-9_]*$} $nm]} {
+          dict set wapp $nm [wappInt-decode-url [lindex $qsplit 1]]
+        }
+      }
+    } elseif {[string match multipart/form-data* $ctype]} {
+      regexp {^(.*?)\r\n(.*)$} [dict get $wapp CONTENT] all divider body
+      set ndiv [string length $divider]
+      while {[string length $body]} {
+        set idx [string first $divider $body]
+        set unit [string range $body 0 [expr {$idx-3}]]
+        set body [string range $body [expr {$idx+$ndiv+2}] end]
+        if {[regexp {^Content-Disposition: form-data; name="(.*)"; filename="(.*)"\r\nContent-Type: (.*)\r\n\r\n(.*)$}\
+             $unit unit name filename mimetype content]} {
+          dict set wapp $name.filename $filename
+          dict set wapp $name.mimetype $mimetype
+          dict set wapp $name.content $content
+        }
       }
     }
   }
-  # To-Do:  Perhaps add support for multipart/form-data decoding.
-  # Alternatively, perhaps multipart/form-data decoding can be done
-  # by application code using a separate helper function, like
-  # "wapp_decode_multipart_formdata" or somesuch.
 }
 
 # Invoke application-supplied methods to generate a reply to

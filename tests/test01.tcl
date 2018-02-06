@@ -26,6 +26,7 @@ proc wapp-default {} {
     <li><p><a href='%html($B)/redirect'>Redirect to env</a>
     <li><p><a href='globals'>TCL global variables</a>
     <li><p><a href='csptest'>Content Security Policy</a>
+    <li><p><a href='fileupload'>File Upload Using multipart/form-data</a>
   }
   set x "%string(...)"
   set v abc'def\"ghi\\jkl
@@ -121,6 +122,21 @@ proc wapp-page-lint {} {
     }
   }
 }
+proc wapp-page-fileupload {} {
+  wapp-trim {
+    <h1>Wapp Form Test</h1>
+    <p><form method="POST" enctype="multipart/form-data">
+    <input type="file" name="f1"><br>
+    <input type="file" name="f2"><br>
+    <input type="file" name="f3"><br>
+    <input type="submit" value="Go">
+    </form></p>
+    <pre>%html([wapp-debug-env])
+    .header = %html([wapp-param .header])
+    </pre>
+  }
+}
+
 proc wapp-page-encodings {} {
   set strlist {
      {Johann Strauß}
