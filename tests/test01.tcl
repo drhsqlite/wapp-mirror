@@ -123,14 +123,33 @@ proc wapp-page-lint {} {
   }
 }
 proc wapp-page-fileupload {} {
+  wapp-content-security-policy {default_src 'self' 'inline'}
   wapp-trim {
-    <h1>Wapp Form Test</h1>
+    <h1>Wapp File Upload Form Test</h1>
     <p><form method="POST" enctype="multipart/form-data">
     <input type="file" name="f1"><br>
     <input type="file" name="f2"><br>
     <input type="file" name="f3"><br>
-    <input type="submit" value="Go">
+    <input type="submit" value="Upload Files">
     </form></p>
+  }
+  foreach name {f1 f2 f3} {
+    if {[wapp-param $name.filename]==""} continue
+    wapp-subst {<h2>%html($name): %html([wapp-param $name.filename])</h2>\n}
+    set mimetype [wapp-param $name.mimetype]
+    if {[string match text/* $mimetype]} {
+      wapp-subst {<pre>%html([wapp-param $name.content])</pre>\n}
+    } elseif {[string match image/* $mimetype]} {
+      set data [binary encode base64 [wapp-param $name.content]]
+      wapp-subst {<img src="data:%url($mimetype);base64,%unsafe($data)">\n}
+    } else {
+      wapp-subst {<p>Unrenderable mime-type: %html($mimetype)</p>\n}
+    }
+    wapp-set-param $name.content \
+       "... [string length [wapp-param $name.content]] bytes of data ..."
+  }
+  wapp-trim {
+    <h2>Environment</h2>
     <pre>%html([wapp-debug-env])
     .header = %html([wapp-param .header])
     </pre>
