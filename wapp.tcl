@@ -538,8 +538,10 @@ proc wappInt-decode-query-params {} {
         set idx [string first $divider $body]
         set unit [string range $body 0 [expr {$idx-3}]]
         set body [string range $body [expr {$idx+$ndiv+2}] end]
-        if {[regexp {^Content-Disposition: form-data; name="(.*)"; filename="(.*)"\r\nContent-Type: (.*)\r\n\r\n(.*)$}\
-             $unit unit name filename mimetype content]} {
+        if {[regexp {^Content-Disposition: form-data; (.*?)\r\n\r\n(.*)$} \
+             $unit unit hdr content] &&
+            [regexp {name="(.*)"; filename="(.*)"\r\nContent-Type: (.*?)$}\
+              $hdr hr name filename mimetype]} {
           dict set wapp $name.filename $filename
           dict set wapp $name.mimetype $mimetype
           dict set wapp $name.content $content
