@@ -330,26 +330,27 @@ proc wappInt-trace {} {}
 # Start up a listening socket.  Arrange to invoke wappInt-new-connection
 # for each inbound HTTP connection.
 #
-#    localonly   -   If true, listen on 127.0.0.1 only
+#    port            Listen on this TCP port.  0 means to select a port
+#                    that is not currently in use
 #
-#    browser     -   If true, launch a web browser pointing to the new server
+#    wappmode        One of "scgi", "server", or "local".
 #
-proc wappInt-start-listener {port localonly browser scgi} {
-  if {$scgi} {
+proc wappInt-start-listener {port wappmode} {
+  if {$wappmode=="scgi"} {
     set type SCGI
-    set server [list wappInt-new-connection wappInt-scgi-readable]
+    set server [list wappInt-new-connection wappInt-scgi-readable $wappmode]
   } else {
     set type HTTP
-    set server [list wappInt-new-connection wappInt-http-readable]
+    set server [list wappInt-new-connection wappInt-http-readable $wappmode]
   }
-  if {$localonly} {
+  if {$wappmode=="local"} {
     set x [socket -server $server -myaddr 127.0.0.1 $port]
   } else {
     set x [socket -server $server $port]
   }
   set coninfo [chan configure $x -sockname]
   set port [lindex $coninfo 2]
-  if {$browser} {
+  if {$wappmode=="local"} {
     wappInt-start-browser http://127.0.0.1:$port/
   } else {
     puts "Listening for $type requests on TCP port $port"
@@ -369,11 +370,16 @@ proc wappInt-start-browser {url} {
   }
 }
 
-# Accept a new inbound HTTP request
+# This routine is a "socket -server" callback.  The $chan, $ip, and $port
+# arguments are added by the socket command.
 #
-proc wappInt-new-connection {callback chan ip port} {
+# Arrange to invoke $callback when content is available on the new socket.
+# The $callback will process inbound HTTP or SCGI content.
+#
+proc wappInt-new-connection {callback wappmode chan ip port} {
   upvar #0 wappInt-$chan W
-  set W [dict create REMOTE_ADDR $ip REMOTE_PORT $port .header {}]
+  set W [dict create REMOTE_ADDR $ip REMOTE_PORT $port WAPP_MODE $wappmode \
+         .header {}]
   fconfigure $chan -blocking 0 -translation binary
   fileevent $chan readable [list $callback $chan]
 }
@@ -725,6 +731,7 @@ proc wappInt-handle-cgi-request {} {
     fconfigure stdin -translation binary
     dict set wapp CONTENT [read stdin $len]
   }
+  dict set wapp WAPP_MODE cgi
   fconfigure stdout -translation binary
   wappInt-handle-request stdout 1
 }
@@ -873,11 +880,11 @@ proc wapp-start {arglist} {
     return
   }
   if {$mode=="scgi"} {
-    wappInt-start-listener $port 1 0 1
+    wappInt-start-listener $port scgi
   } elseif {$mode=="server"} {
-    wappInt-start-listener $port 0 0 0
+    wappInt-start-listener $port server
   } else {
-    wappInt-start-listener $port 1 1 0
+    wappInt-start-listener $port local
   }
   vwait ::forever
 }

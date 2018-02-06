@@ -100,6 +100,7 @@ That page will look something like this:
     SCRIPT_FILENAME = /home/drh/wapp/examples/env.tcl
     SCRIPT_NAME = {}
     SELF_URL = http://127.0.0.1:33999/
+    WAPP_MODE = local
     env-cookie = simple
     [pwd] = /home/drh/wapp
 
@@ -244,6 +245,10 @@ The following are supplemental environment parameters are added by Wapp:
   +  **SELF\_URL**  
      The URL for the current page, stripped of query parameter. This is
      useful for filling in the action= attribute of forms.
+
+  +  **WAPP\_MODE**  
+     This parameter has a value of "cgi", "local", "scgi", or "server" depending
+     on how Wapp was launched.
 
 
 ### 3.1 URL Parsing Example
