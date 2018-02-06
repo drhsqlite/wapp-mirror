@@ -786,6 +786,8 @@ proc wappInt-scgi-readable-unsafe {chan} {
 #
 #    -server $PORT         Listen for HTTP requests on this TCP port $PORT
 #
+#    -local $PORT          Listen for HTTP requests on 127.0.0.1:$PORT
+#
 #    -scgi $PORT           Listen for SCGI requests on TCP port $PORT
 #
 #    -cgi                  Handle a single CGI request
@@ -819,6 +821,11 @@ proc wapp-start {arglist} {
       -server {
         incr i;
         set mode "server"
+        set port [lindex $arglist $i]
+      }
+      -local {
+        incr i;
+        set mode "local"
         set port [lindex $arglist $i]
       }
       -scgi {
