@@ -1,0 +1,2 @@
+This file exists to test wapp's handling of files with
+unusual filenames.
