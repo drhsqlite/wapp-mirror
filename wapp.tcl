@@ -322,100 +322,6 @@ proc wapp-debug-env {} {
   return $out
 }
 
-# Start up the wapp framework.  Parameters are a list passed as the
-# single argument.
-#
-#    -server $PORT         Listen for HTTP requests on this TCP port $PORT
-#
-#    -scgi $PORT           Listen for SCGI requests on TCP port $PORT
-#
-#    -cgi                  Handle a single CGI request
-#
-# With no arguments, the behavior is called "auto".  In "auto" mode,
-# if the GATEWAY_INTERFACE environment variable indicates CGI, then run
-# as CGI.  Otherwise, start an HTTP server bound to the loopback address
-# only, on an arbitrary TCP port, and automatically launch a web browser
-# on that TCP port.
-#
-# Additional options:
-#
-#    -trace               "puts" each request URL as it is handled, for
-#                         debugging
-#
-#    -lint                Run wapp-safety-check on the application instead
-#                         of running the application itself
-#
-#    -Dvar=value          Set TCL global variable "var" to "value"
-#
-#
-proc wapp-start {arglist} {
-  global env
-  set mode auto
-  set port 0
-  set n [llength $arglist]
-  for {set i 0} {$i<$n} {incr i} {
-    set term [lindex $arglist $i]
-    if {[string match --* $term]} {set term [string range $term 1 end]}
-    switch -glob -- $term {
-      -server {
-        incr i;
-        set mode "server"
-        set port [lindex $arglist $i]
-      }
-      -scgi {
-        incr i;
-        set mode "scgi"
-        set port [lindex $arglist $i]
-      }
-      -cgi {
-        set mode "cgi"
-      }
-      -trace {
-        proc wappInt-trace {} {
-          set q [wapp-param QUERY_STRING]
-          set uri [wapp-param BASE_URL][wapp-param PATH_INFO]
-          if {$q!=""} {append uri ?$q}
-          puts $uri
-        }
-      }
-      -lint {
-        set res [wapp-safety-check]
-        if {$res!=""} {
-          puts "Potential problems in this code:"
-          puts $res
-          exit 1
-        } else {
-          exit
-        }
-      }
-      -D*=* {
-        if {[regexp {^.D([^=]+)=(.*)$} $term all var val]} {
-          set ::$var $val
-        }
-      }
-      default {
-        error "unknown option: $term"
-      }
-    }
-  }
-  if {($mode=="auto"
-       && [info exists env(GATEWAY_INTERFACE)]
-       && [string match CGI/1.* $env(GATEWAY_INTERFACE)])
-    || $mode=="cgi"
-  } {
-    wappInt-handle-cgi-request
-    return
-  }
-  if {$mode=="scgi"} {
-    wappInt-start-listener $port 1 0 1
-  } elseif {$mode=="server"} {
-    wappInt-start-listener $port 0 0 0
-  } else {
-    wappInt-start-listener $port 1 1 0
-  }
-  vwait ::forever
-}
-
 # Tracing function for each HTTP request.  This is overridden by wapp-start
 # if tracing is enabled.
 #
@@ -873,6 +779,100 @@ proc wappInt-scgi-readable-unsafe {chan} {
       wappInt-handle-request $chan 0
     }
   }
+}
+
+# Start up the wapp framework.  Parameters are a list passed as the
+# single argument.
+#
+#    -server $PORT         Listen for HTTP requests on this TCP port $PORT
+#
+#    -scgi $PORT           Listen for SCGI requests on TCP port $PORT
+#
+#    -cgi                  Handle a single CGI request
+#
+# With no arguments, the behavior is called "auto".  In "auto" mode,
+# if the GATEWAY_INTERFACE environment variable indicates CGI, then run
+# as CGI.  Otherwise, start an HTTP server bound to the loopback address
+# only, on an arbitrary TCP port, and automatically launch a web browser
+# on that TCP port.
+#
+# Additional options:
+#
+#    -trace               "puts" each request URL as it is handled, for
+#                         debugging
+#
+#    -lint                Run wapp-safety-check on the application instead
+#                         of running the application itself
+#
+#    -Dvar=value          Set TCL global variable "var" to "value"
+#
+#
+proc wapp-start {arglist} {
+  global env
+  set mode auto
+  set port 0
+  set n [llength $arglist]
+  for {set i 0} {$i<$n} {incr i} {
+    set term [lindex $arglist $i]
+    if {[string match --* $term]} {set term [string range $term 1 end]}
+    switch -glob -- $term {
+      -server {
+        incr i;
+        set mode "server"
+        set port [lindex $arglist $i]
+      }
+      -scgi {
+        incr i;
+        set mode "scgi"
+        set port [lindex $arglist $i]
+      }
+      -cgi {
+        set mode "cgi"
+      }
+      -trace {
+        proc wappInt-trace {} {
+          set q [wapp-param QUERY_STRING]
+          set uri [wapp-param BASE_URL][wapp-param PATH_INFO]
+          if {$q!=""} {append uri ?$q}
+          puts $uri
+        }
+      }
+      -lint {
+        set res [wapp-safety-check]
+        if {$res!=""} {
+          puts "Potential problems in this code:"
+          puts $res
+          exit 1
+        } else {
+          exit
+        }
+      }
+      -D*=* {
+        if {[regexp {^.D([^=]+)=(.*)$} $term all var val]} {
+          set ::$var $val
+        }
+      }
+      default {
+        error "unknown option: $term"
+      }
+    }
+  }
+  if {($mode=="auto"
+       && [info exists env(GATEWAY_INTERFACE)]
+       && [string match CGI/1.* $env(GATEWAY_INTERFACE)])
+    || $mode=="cgi"
+  } {
+    wappInt-handle-cgi-request
+    return
+  }
+  if {$mode=="scgi"} {
+    wappInt-start-listener $port 1 0 1
+  } elseif {$mode=="server"} {
+    wappInt-start-listener $port 0 0 0
+  } else {
+    wappInt-start-listener $port 1 1 0
+  }
+  vwait ::forever
 }
 
 # Call this version 1.0
