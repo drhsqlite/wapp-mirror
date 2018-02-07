@@ -7,11 +7,11 @@ Wapp - A Web-Application Framework for TCL
 Wapp is a new framework for writing web applications in TCL,
 with the following advantages:
 
-  *   Very small API surface &rarr; Simple to learn and use
+  *   Very small API &rarr; easy to learn and use
   *   A complete application is contained in a single file
   *   Resistant to attacks and exploits
-  *   Cross-platform &rarr; Works via CGI, SCGI, or using a built-in web server
-  *   Does not require MVC, but can do MVC if desired
+  *   Cross-platform &rarr; CGI, SCGI, or a built-in web server
+  *   The MVC design pattern is supported but not required
   *   The Wapp framework itself is a  single-file TCL script
       that is "source"-ed, "package require"-ed, 
       or even copy/pasted into the application TCL script
@@ -49,7 +49,7 @@ To run the app as an SCGI server listening on port 9001:
     tclsh hello.tcl --scgi 9001
 
 To run the application as CGI, make the hello.tcl file executable and
-move into the appropriate directory of your web server.
+move it into the appropriate directory of the web server.
 
 3.0 Further information
 -----------------------

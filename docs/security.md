@@ -14,7 +14,7 @@ Security features in Wapp include the following:
       resources must all be loaded from the same origin, the use of
       eval() and similar commands in javascript is prohibited, and
       no in-line javascript or CSS is allowed.  These limitations help
-      keep application safe from 
+      keep applications safe from 
       [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting)
       attacks, even in the face of application coding errors. If these
       restrictions are too severe for an application, the CSP can be
@@ -29,12 +29,12 @@ Security features in Wapp include the following:
       disable this protection on a case-by-case basis.
 
   3.  Cookies, query parameters, and POST parameters are automatically
-      decoded before they ever reach application code. There is no risk
+      decoded before they reach application code. There is no risk
       that the application program will forget a decoding step or
       accidently miscode a decoding operation.
 
   4.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
-      automatically escape generated text so that it is safe for inclusion
+      automatically escapes generated text so that it is safe for inclusion
       within HTML, within a javascript or JSON string literal, as a URL,
       or as the value of a query parameter. As long as the application
       programmer is careful to always use "wapp-subst" and/or "wapp-trim"

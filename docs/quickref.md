@@ -1,10 +1,29 @@
 Wapp Quick Reference
 ====================
 
-1.0 Interfaces
+1.0 Application Template
+------------------------
+
+>
+    package require wapp
+    proc wapp-page-XXXXX {} {
+      wapp-trim {
+        # Content to deliver for page XXXXX
+      }
+    }
+    proc wapp-default {} {
+      wapp-trim {
+        # Content for all other pages
+      }
+    }
+    wapp-start $argv
+         
+
+2.0 Interfaces
 --------------
 
-|**wapp-start** $argv|&rarr;|Starts up the Wapp application.  Should be last.|
+>
+|**wapp-start** $argv|&rarr;|Starts up the Wapp application|
 |**wapp-subst** {_TEXT_}|&rarr;|Append _TEXT_ to the output with substitution|
 |**wapp-trim** {_TEXT_}|&rarr;|Like **wapp-subst** but also removes left-margin whitespace|
 |**wapp-param** _NAME_ _DEFAULT_|&rarr;|Return value of parameter _NAME_|
@@ -12,12 +31,12 @@ Wapp Quick Reference
 |**wapp-param-exists** _NAME_|&rarr;|True if parameter _NAME_ exists|
 |**wapp-param_list** _GLOB_|&rarr;|Return parameter names matching _GLOB_|
 |**wapp-allow-xorigin-params**|&rarr;|Allow GET and POST parameters for cross-origin requests|
-|**wapp-mimetype** _MIMETYPE_|&rarr;|Make _MIMETYPE_ the reply mimetype|
-|**wapp-reply-code** _CODE_|&rarr;|Set the HTTP reply code to _CODE_|
+|**wapp-mimetype** _MIMETYPE_|&rarr;|Set the reply mimetype|
+|**wapp-reply-code** _CODE_|&rarr;|Set the HTTP reply code|
 |**wapp-redirect** _TARGET_|&rarr;|Redirect to _TARGET_|
 |**wapp-reset**|&rarr;|Reset the output back to an empty string|
 |**wapp-set-cookie** _NAME_ _VALUE_|&rarr;|Set cookie _NAME_ to have _VALUE_|
-|**wapp-clear_cookie** _NAME_|&rarr;|Delete cookie _NAME_|
+|**wapp-clear-cookie** _NAME_|&rarr;|Delete cookie _NAME_|
 |**wapp-cache-control** _CONTROL_|&rarr;|Set caching behavior of current page|
 |**wapp-content-security-policy** _POLICY_|&rarr;|Set the CSP for the current page|
 |**wapp-debug-env**|&rarr;|Return a text description of the Wapp environment|
@@ -25,9 +44,10 @@ Wapp Quick Reference
 |**wapp-unsafe** _TEXT_|&rarr;|Append _TEXT_ that contains nothing that needs to be escaped|
 
 
-2.0 Parameters
+3.0 Parameters
 --------------
 
+>
 |BASE\_URL|&rarr;|URL for the Wapp script without a method|
 |CONTENT|&rarr;|Raw (unparsed) POST content|
 |CONTENT\_LENGTH|&rarr;|Number of bytes of raw, unparsed POST content|
@@ -61,6 +81,9 @@ Assuming "env.tcl" is the name of the Wapp application script:
              HTTP_HOST  SCRIPT_NAME  PATH_INFO
 
 >
+    SCRIPT_FILENAME := DOCUMENT_ROOT + SCRIPT_NAME
+
+>
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
     \______________________________/ \_/ \_____/
                    |                  |     |
@@ -71,5 +94,3 @@ Assuming "env.tcl" is the name of the Wapp application script:
     \__________________________________/         \__________/
                    |                                  |
                 SELF_URL                         QUERY_STRING
-
-SCRIPT\_FILENAME := DOCUMENT\_ROOT + SCRIPT\_NAME
