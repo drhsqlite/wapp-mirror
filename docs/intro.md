@@ -130,7 +130,7 @@ substitutions are "%url(...)" for
 URLs on the href= and src= attributes of HTML entities, "%qp(...)" for
 query parameters, "%string(...)" for string literals within javascript,
 and "%unsafe(...)" for direct literal substitution.  As its name implies,
-the %unsafe() substitution should be avoid whenever possible.
+the %unsafe() substitution should be avoided whenever possible.
 
 The /env page is implemented by the "wapp-page-env" proc.  This proc
 generates HTML that describes all of the query parameters. Parameter names
