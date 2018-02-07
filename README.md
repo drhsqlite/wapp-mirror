@@ -15,6 +15,7 @@ with the following advantages:
   *   The Wapp framework itself is a  single-file TCL script
       that is "source"-ed, "package require"-ed, 
       or even copy/pasted into the application TCL script
+  *   2-clause BSD license
 
 
 2.0 Hello World
