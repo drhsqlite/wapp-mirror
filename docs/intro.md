@@ -138,6 +138,36 @@ that begin with "." are for internal use by Wapp and are skipped
 for this display.  Notice the use of "wapp-subst" to safely escape text
 for inclusion in an HTML document.
 
+The printing of all the parameters as is done by the /env page turns
+out to be so useful that there is a special "wapp-debug-env" command
+to render the text for us.  Using "wapp-debug-env", the program
+above can be simplified to the following:
+
+>
+    package require wapp
+    proc wapp-default {} {
+      set B [wapp-param BASE_URL]
+      wapp-trim {
+        <h1>Hello, World!</h1>
+        <p>See the <a href='%html($B)/env'>Wapp
+        Environment</a></p>
+      }
+    }
+    proc wapp-page-env {} {
+      wapp-allow-xorigin-params
+      wapp-trim {
+        <h1>Wapp Environment</h1>\n<pre>
+        <pre>%html([wapp-debug-env])</pre>
+      }
+    }
+    wapp-start $argv
+
+Most Wapp applications contain an /env page for debugging and
+trouble-shooting purpose.  Examples:
+<https://sqlite.org/checklists/env> and
+<https://sqlite.org/search?env=1>
+
+
 2.1 Binary Resources
 --------------------
 
@@ -157,12 +187,10 @@ image to the main page:
     }
     proc wapp-page-env {} {
       wapp-allow-xorigin-params
-      wapp-subst {<h1>Wapp Environment</h1>\n<pre>\n}
-      foreach var [lsort [wapp-param-list]] {
-        if {[string index $var 0]=="."} continue
-        wapp-subst {%html($var) = %html([list [wapp-param $var]])\n}
+      wapp-trim {
+        <h1>Wapp Environment</h1>\n<pre>
+        <pre>%html([wapp-debug-env])</pre>
       }
-      wapp-subst {</pre>\n}
     }
     proc wapp-page-broccoli.gif {} {
       wapp-mimetype image/gif
@@ -200,10 +228,10 @@ Wapp applications all follow the same basic template:
 >
     package require wapp;
     proc wapp-page-XXXXX {} {
-      # code to generate page XXXX
+      # code to generate page XXXXX
     }
     proc wapp-page-YYYYY {} {
-      # code to generate page YYYY
+      # code to generate page YYYYY
     }
     proc wapp-default {} {
       # code to generate any page not otherwise
@@ -252,5 +280,5 @@ together into the same proc.  They can each be sub-procs that
 are invoked from the main proc, if separating the functions make
 code clearer.
 
-So Wapp does support MVC, but without a lot of extra
+So Wapp does support MVC, but without a lot of complex
 machinary and syntax.
