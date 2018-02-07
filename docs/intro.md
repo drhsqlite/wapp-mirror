@@ -48,7 +48,7 @@ To run this same program as a traditional web-server on TCP port 8080, enter:
     wapptclsh main.tcl --server 8080
 
 Here the built-in web-server listens on all IP addresses and so the
-web page is available on other machines.  But the web-broswer is not
+web page is available on other machines.  But the web-brwser is not
 automatically started in this case, so you will have to manually enter
 "http://localhost:8080/" into your web-browser in order to see the page.
 

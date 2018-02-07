@@ -69,7 +69,7 @@ Wapp Quick Reference
 |SELF\_URL|&rarr;|URL of this request without PATH\_TAIL|
 |WAPP\_MODE|&rarr;|One of "cgi", "scgi", "server", or "local"|
 
-3.0 URL Parsing
+4.0 URL Parsing
 ---------------
 
 Assuming "env.tcl" is the name of the Wapp application script:

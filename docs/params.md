@@ -55,7 +55,7 @@ Each request has four different kinds or sources of parameters:
 
   4.  **POST Parameters**  
       POST parameters are the application/x-www-form-urlencoded key/value
-      pairs in the content of a POST request they typically originate from
+      pairs in the content of a POST request that typically originate from
       forms.  POST parameters are treated exactly like query parameters in
       that they are decoded to form new Wapp parameters as long as they
       have all lower-case keys and as long as either the HTTP request comes

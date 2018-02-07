@@ -40,8 +40,8 @@ tradition CGI and SCGI, and Wapp, break a URL down like this:
 
 The URL Mapper is the function that determines which routine in the
 application should handle an HTTP request based on the URL.  In Wapp,
-the default URL Mapper simply looks at PATH_HEAD and invokes the
-application-defined proc name "wapp-page-$PATH_HEAD".  If no such
+the default URL Mapper simply looks at PATH\_HEAD and invokes the
+application-defined proc name "wapp-page-$PATH\_HEAD".  If no such
 proc exists, then Wapp invokes the application-defined proc "wapp-default".
 
 2.1 Customizing The URL Mapper
@@ -52,13 +52,13 @@ proc named "wapp-before-dispatch-hook".  This proc is normally a no-op.
 But, applications can redefine the "wapp-before-dispatch-hook" proc to
 make modifications to the environment prior to dispatch.  So, for example,
 a custom wapp-before-dispatch-hook function can change the value of
-the PATH_HEAD parameter to cause a different request handler to be invoked.
+the PATH\_HEAD parameter to cause a different request handler to be invoked.
 
 The [checklist](https://sqlite.org/checklistapp) application does this.
 See [these lines](https://sqlite.org/checklistapp/artifact/8f94882fa0?ln=715-744)
 for the implementation.  If the original PATH\_HEAD is really the name of
 a checklist database, then that name is moved to a new parameter called
-OBJECT, and PATH\_HEAD is shifted to be the next element of PATH_TAIL.
+OBJECT, and PATH\_HEAD is shifted to be the next element of PATH\_TAIL.
 In this way, the PATH\_INFO for checklist is parsed into OBJECT/METHOD
 rather than just a METHOD.
 

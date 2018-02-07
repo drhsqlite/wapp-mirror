@@ -102,7 +102,7 @@ The following is a complete list of the public interface procs in Wapp:
 
   +  **wapp-content-security-policy** _POLICY_  
      Set the Content Security Policy (hereafter "CSP") to _POLICY_.  The
-     default CSP is _default\_src 'self'_, which is very restriction.  The
+     default CSP is _default\_src 'self'_, which is very restrictive.  The
      default CSP disallows (a) loading any resources from other origins,
      (b) the use of eval(), and (c) in-line javascript or CSS of any kind.
      Set _POLICY_ to "off" to completely disable the CSP mechanism.  Or
