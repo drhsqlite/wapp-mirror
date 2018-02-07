@@ -614,12 +614,13 @@ proc wappInt-handle-request {chan useCgi} {
       }
     }
   }
-  if {[dict exists $wapp HTTP_REFERER]
-   && [string match [dict get $wapp BASE_URL]/* [dict get $wapp HTTP_REFERER]]
-  } {
-    set same_origin 1
-  } else {
-    set same_origin 0
+  set same_origin 0
+  if {[dict exists $wapp HTTP_REFERER]} {
+    set referer [dict get $wapp HTTP_REFERER]
+    set base [dict get $wapp BASE_URL]
+    if {$referer==$base || [string match $base/* $referer]} {
+      set same_origin 1
+    }
   }
   dict set wapp SAME_ORIGIN $same_origin
   if {$same_origin} {
