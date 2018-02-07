@@ -1,6 +1,9 @@
 Introducing To Writing Wapp Applications
 ========================================
 
+1.0 Hello World
+---------------
+
 Wapp applications are easy to develop.  A hello-world program is as follows:
 
 >
@@ -24,6 +27,9 @@ various substitutions as it goes.  The only substitution in this example is
 the \\n at the end of the line.
 
 The "wapp-start" command starts up the application.
+
+1.1 Running A Wapp Application
+------------------------------
 
 To run this application, copy the code above into a file named "main.tcl"
 and then enter the following command:
@@ -60,7 +66,7 @@ Run the hello-world program as SCGI like this:
 Then configure your web-server to send SCGI requests to TCL port 9000
 for some specific URI, and point your web-browser at that URI.
 
-1.0 Using Plain Old Tclsh
+1.2 Using Plain Old Tclsh
 -------------------------
 
 Wapp applications are pure TCL code.  You can run them using an ordinary
@@ -83,8 +89,8 @@ normally use "wapptclsh" for the following reasons:
 We prefer to use wapptclsh and wapptclsh is shown in all of the examples.
 But ordinary "tclsh" will work in the examples too.
 
-2.0 A Slightly Longer Example
------------------------------
+2.0 Longer Examples
+-------------------
 
 Wapp keeps track of various [parameters](params.md) that describe
 each HTTP request.  Those parameters are accessible using routines
@@ -110,7 +116,7 @@ The following sample program gives some examples:
       }
       wapp-subst {</pre>\n}
     }
-    wapp-start $::argv
+    wapp-start $argv
 
 In this application, the default "Hello, World!" page has been extended
 with a hyperlink to the /env page.  The "wapp-subst" command has been
@@ -131,6 +137,60 @@ generates HTML that describes all of the query parameters. Parameter names
 that begin with "." are for internal use by Wapp and are skipped
 for this display.  Notice the use of "wapp-subst" to safely escape text
 for inclusion in an HTML document.
+
+2.1 Binary Resources
+--------------------
+
+Here is another variation on the same "hello, world" program that adds an
+image to the main page:
+
+>
+    package require wapp
+    proc wapp-default {} {
+      set B [wapp-param BASE_URL]
+      wapp-trim {
+        <h1>Hello, World!</h1>
+        <p>See the <a href='%html($B)/env'>Wapp
+        Environment</a></p>
+        <p>Broccoli: <img src='broccoli.gif'></p>
+      }
+    }
+    proc wapp-page-env {} {
+      wapp-allow-xorigin-params
+      wapp-subst {<h1>Wapp Environment</h1>\n<pre>\n}
+      foreach var [lsort [wapp-param-list]] {
+        if {[string index $var 0]=="."} continue
+        wapp-subst {%html($var) = %html([list [wapp-param $var]])\n}
+      }
+      wapp-subst {</pre>\n}
+    }
+    proc wapp-page-broccoli.gif {} {
+      wapp-mimetype image/gif
+      wapp-cache-control max-age=3600
+      wapp-unsafe [binary decode base64 {
+        R0lGODlhIAAgAPMAAAAAAAAiAAAzMwBEAABVAABmMwCZMzPMM2bMM5nMM5nMmZn/
+        mczMmcz/mQAAAAAAACH5BAEAAA4ALAAAAAAgACAAAAT+0MlJXbmF1M35VUcojNJI
+        dh5YKEbRmqthAABaFaFsKG4hxJhCzSbBxXSGgYD1wQw7mENLd1FOMa3nZhUauFoY
+        K/YioEEP4WB1pB4NtJMMgTCoe3NWg2lfh68SCSEHP2hkYD4yPgJ9FFwGUkiHij87
+        ZF5vjQmPO4kuOZCIPYsFmEUgkIlJOVcXAS8DSVoxB0xgA6hqAZaksiCpPThghwO6
+        i0kBvb9BU8KkASPHfrXAF4VqSgAGAbpwDgRSaqQXrLwDCF5CG9/hpJKkb17n6RwA
+        18To7whJX0k2NHYjtgXoAwCWPgMM+hEBIFDguDrjZCBIOICIg4J27Lg4aGCBPn0/
+        FS1itJdNX4OPChditGOmpIGTMkJavEjDzASXMFPO7IAT5M6FBvQtiPnTX9CjdYqi
+        cFlgoNKlLbbJfLqh5pAIADs=
+      }]
+    }
+    wapp-start $argv
+
+This application is the same as the previous except that it adds the
+"broccoli.gif" image on the main "Hello, World" page.  The image file is
+a separate resource, which is provided by the new "wapp-page-broccoli.gif"
+proc.  The image is a GIF which has been encoded using base64 so that
+it can be put into an text TCL script.  The "[binary decode base64 ...]"
+command is used to convert the image back into binary before returning
+it.
+
+Other resources might be added using procs like "wapp-page-style.css"
+or "wapp-page-script.js".
 
 3.0 General Structure Of A Wapp Application
 -------------------------------------------
@@ -161,3 +221,36 @@ the "wapp-start" routine is called to start Wapp running.  The
 "wapp-start" routine never returns (or in the case of CGI, it only
 returns after the HTTP request has been completely processed), 
 so it should be the very last command in the application script.
+
+3.1 Wapp Applications As Model-View-Controller
+----------------------------------------------
+
+If you are accustomed to thinking of web applications using the
+Model-View-Controller (MVC) design pattern, Wapp supports that
+point of view.  A basic template for an MVC Wapp application
+is like this:
+
+>
+    package require wapp;
+    # procs to implement the model go here
+    proc wapp-page-XXXXX {} {
+      # code to implement controller for XXXXX
+      # code to implement view for XXXXX
+    }
+    proc wapp-page-YYYYY {} {
+      # code to implement controller for YYYYY
+      # code to implement view for YYYYY
+    }
+    proc wapp-default {} {
+      # code to implement controller for all other pages
+      # code to implement view for all other pages
+    }
+    wapp-start $argv
+
+The controller and view portions of each page need not be coded
+together into the same proc.  They can each be sub-procs that
+are invoked from the main proc, if separating the functions make
+code clearer.
+
+So Wapp does support MVC, but without a lot of extra
+machinary and syntax.
