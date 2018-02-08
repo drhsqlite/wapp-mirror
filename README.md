@@ -66,6 +66,8 @@ move it into the appropriate directory of the web server.
 
   *  [Security Features](docs/security.md)
 
+  *  [How To Compile wapptclsh - Or Not](docs/compiling.md)
+
   *  [Limitations of Wapp](docs/limitations.md)
 
   *  [Example Applications](/file/examples)
