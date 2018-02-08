@@ -1,3 +1,5 @@
+#!/usr/bin/wapptclsh
+#
 # Invoke as "tclsh test01.tcl" and then surf the website that pops up
 # to verify the logic in wapp.
 #
@@ -13,17 +15,17 @@ proc wapp-default {} {
   wapp "<ol>"
   wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"
   wapp-subst {<li><p><a href='env2'>Environment using wapp-debug-env</a>\n}
-   wapp-subst {<li><p><a href='%html($B)/fullenv'>Full Environment</a>\n}
-  set crazy [lsort [dict keys $wapp]]
-  wapp-subst {<li><p><a href='%html($B)/env?keys=%url($crazy)'>}
+   wapp-subst {<li><p><a href='%url($B)/fullenv'>Full Environment</a>\n}
+  set crazy [lsort [wapp-param-list]]
+  wapp-subst {<li><p><a href='%url($B)/env?keys=%url($crazy)'>}
   wapp "Environment with crazy URL</a>\n"
   wapp-trim {
-    <li><p><a href='%html($B)/lint'>Lint</a>
-    <li><p><a href='%html($B)/errorout'>Deliberate error</a>
-    <li><p><a href='%html($B)/encodings'>Encoding checks</a>
-    <li><p><a href='%html($B)/redirect'>Redirect to env</a>
-    <li><p><a href='globals'>TCL global variables</a>
-    <li><p><a href='csptest'>Content Security Policy</a>
+    <li><p><a href='%url($B)/lint'>Lint</a>
+    <li><p><a href='%url($B)/errorout'>Deliberate error</a>
+    <li><p><a href='%url($B)/encodings'>Encoding checks</a>
+    <li><p><a href='%url($B)/redirect'>Redirect to env</a>
+    <li><p><a href='%url($B)/globals'>TCL global variables</a>
+    <li><p><a href='%url($B)/csptest'>Content Security Policy</a>
     <li><p><a href='%url($B)/fileupload'>File Upload
     Using multipart/form-data</a>
     <li><p><a href='%url($B)/self'>The source code to this script</a>
@@ -32,7 +34,7 @@ proc wapp-default {} {
   set v abc'def\"ghi\\jkl
   wapp-subst {<li>%html($x) substitution test: "%string($v)"\n}
   wapp "</ol>"
-  if {[dict exists $wapp showenv]} {
+  if {[wapp-param-exists showenv]} {
     wapp-page-env
   }
   wapp-trim {
@@ -51,7 +53,12 @@ proc wapp-page-globals {} {
   foreach vname [lsort [uplevel #0 info vars]] {
     set val ???
     catch {set val [set ::$vname]}
-    wapp-subst {<li>%html($vname = [list $val])</li>\n}
+    set len [string length $val]
+    if {$len>100} {
+      wapp-subst {<li>%html($vname) = <i>... %html($len) byte string...</i>\n}
+    } else {
+      wapp-subst {<li>%html($vname = [list $val])</li>\n}
+    }
   }
 }
 proc wapp-page-env2 {} {
@@ -69,28 +76,27 @@ proc wapp-page-env {} {
   wapp "<h1>Wapp Environment</h1>\n"
   wapp-unsafe "<form method='GET' action='[wapp-param SELF_URL]'>\n"
   wapp "<input type='checkbox' name='showhdr'"
-  if {[dict exists $wapp showhdr]} {
+  if {[wapp-param-exists showhdr]} {
     wapp " checked"
   }
   wapp "> Show Header\n"
   wapp "<input type='submit' value='Go'>\n"
   wapp "</form>"
   wapp "<pre>\n"
-  foreach var [lsort [dict keys $wapp]] {
+  foreach var [lsort [wapp-param-list]] {
     if {[string index $var 0]=="." &&
-         ($var!=".header" || ![dict exists $wapp showhdr])} continue
+         ($var!=".header" || ![wapp-param-exists showhdr])} continue
     wapp-subst {%html($var) = %html([list [wapp-param $var]])\n}
   }
   wapp "</pre>"
   wapp-unsafe "<p><a href='[wapp-param BASE_URL]/'>Home</a></p>\n"
 }
 proc wapp-page-fullenv {} {
-  global wapp
   wapp-set-cookie env-cookie full
   wapp "<h1>Wapp Full Environment</h1>\n"
   wapp-unsafe "<form method='POST' action='[wapp-param SELF_URL]'>\n"
   wapp "<input type='checkbox' name='var1'"
-  if {[dict exists $wapp showhdr]} {
+  if {[wapp-param-exists showhdr]} {
     wapp " checked"
   }
   # Deliberately unsafe calls to wapp-subst and wapp-trim, added here
@@ -102,12 +108,12 @@ proc wapp-page-fullenv {} {
   wapp "value='the long value / of ?$ hidden-1..<hi>'>\n"
   wapp "</form>"
   wapp "<pre>\n"
-  foreach var [lsort [dict keys $wapp]] {
+  foreach var [lsort [wapp-param-list]] {
     if {$var==".reply"} continue
-    wapp-subst {%html($var) = %html([list [wapp-dict $var]])\n\n}
+    wapp-subst {%html($var) = %html([list [wapp-param $var]])\n\n}
   }
   wapp "</pre>"
-  wapp-subst {<p><a href='%html([dict get $wapp BASE_URL])/'>Home</a></p>\n}
+  wapp-subst {<p><a href='%html([wapp-param BASE_URL])/'>Home</a></p>\n}
 }
 proc wapp-page-lint {} {
   wapp "<h1>Potental Cross-Site Injection Vulerabilities In This App</h1>\n"
