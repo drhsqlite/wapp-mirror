@@ -1,3 +1,5 @@
+#!/usr/bin/wapptclsh
+#
 # This script demonstrates a Wapp application that can display a copy
 # of itself via the /self page.  (See the wapp-page-self procedure for
 # how that one page is generated.)

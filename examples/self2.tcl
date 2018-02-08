@@ -1,3 +1,5 @@
+#!/usr/bin/wapptclsh
+#
 # This script demonstrates a Wapp application that can display a copy
 # of itself using a font color selected by a query parameter.
 #
@@ -9,6 +11,12 @@
 # an RGB color, like this:
 #
 #              ?color=%23003f7f
+#
+# Notice that the "wapp-content-security-policy" command had to be used
+# to enable in-line CSS.  In-line CSS is off by default.
+#
+# Also notice that the "wapp-allow-xorigin-params" command had to be used
+# to enable users to manually add new color= query parameters.
 #
 package require wapp
 proc wapp-default {} {

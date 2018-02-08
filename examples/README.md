@@ -66,8 +66,14 @@ debugging and testing purposes.
 5.0 self.tcl and self2.tcl
 --------------------------
 
-These script give examples of Wapp applications that can display
+These scripts give examples of Wapp applications that can display
 a copy of themselves.  The self-display for self.tcl is in the /self
 page and is actually a very small part of the total script. For the
 self2.tcl example, the color of the text for the self-display is
 controlled by a query parameter.
+
+Both of these example scripts are installed on the canonical Wapp
+website so that you can easily try them out:
+
+  +  <https://wapp.tcl.tk/examples/self.tcl>
+  +  <https://wapp.tcl.tk/examples/self2.tcl>
