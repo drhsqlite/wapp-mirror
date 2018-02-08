@@ -39,7 +39,7 @@ proc wapp-default {} {
     <li> <a href='%url([wapp-param SCRIPT_NAME])/self'>Show the script
     that generates this page</a>
     <li> <a href='%url([wapp-param SCRIPT_NAME])/env'>Wapp Environment</a>
-    </ol>
+    </ul>
   }
   common-footer
 }

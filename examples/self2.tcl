@@ -20,7 +20,7 @@
 #
 package require wapp
 proc wapp-default {} {
-  wapp-content-security-policy {default_src 'self' 'inline'}
+  wapp-content-security-policy {default-src 'self' 'unsafe-inline'}
   wapp-allow-xorigin-params
   set fd [open [wapp-param SCRIPT_FILENAME] rb]
   set script [read $fd]
