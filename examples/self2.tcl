@@ -33,7 +33,7 @@ proc wapp-default {} {
     <title>Wapp Self-Display Demo</title>
     </head>
     <body>
-    <p>In the box below is shown the Wapp script that generated this page.
+    <p>The box below shows the Wapp script that generated this page.
     Change the foreground color using the color= query parameter.
     Examples:</p>
     <ul>

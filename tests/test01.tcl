@@ -2,9 +2,7 @@
 # to verify the logic in wapp.
 #
 if {[catch {package require wapp}]} {
-  if {[catch {source wapp.tcl}]} {
-    source ../wapp.tcl
-  }
+  source [file dir [file dir [info script]]]/wapp.tcl
 }
 proc wapp-default {} {
   global wapp
@@ -26,7 +24,9 @@ proc wapp-default {} {
     <li><p><a href='%html($B)/redirect'>Redirect to env</a>
     <li><p><a href='globals'>TCL global variables</a>
     <li><p><a href='csptest'>Content Security Policy</a>
-    <li><p><a href='fileupload'>File Upload Using multipart/form-data</a>
+    <li><p><a href='%url($B)/fileupload'>File Upload
+    Using multipart/form-data</a>
+    <li><p><a href='%url($B)/self'>The source code to this script</a>
   }
   set x "%string(...)"
   set v abc'def\"ghi\\jkl
@@ -211,6 +211,16 @@ proc wapp-page-csptest {} {
     script will be disabled by the default CSP.
     <p>Use the csp= query parameter to change CSP.
     <script>alert("This is the alert");</script>
+  }
+}
+proc wapp-page-self {} {
+  set fd [open [wapp-param SCRIPT_FILENAME] rb]
+  set script [read $fd]
+  close $fd
+  wapp-content-security-policy {default-src 'inline' 'unsafe-inline'}
+  wapp-trim {
+    <h1>Source code to this script</h1>
+    <pre style='border: 1px solid black;'>%html($script)</pre>
   }
 }
 proc wapp-page-drh.jpg {} {

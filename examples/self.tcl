@@ -5,7 +5,7 @@
 # how that one page is generated.)
 #
 # This script also has a homepage and an /env page that show the wapp
-# environment.  The header and footer for each page is broken out into
+# environment.  The header and footer for each page are broken out into
 # separate subroutines.
 #
 # Just for grins, there is also a style-sheet and some cache-control
