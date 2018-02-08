@@ -62,3 +62,12 @@ The password for the "shoplist-demo.db" database is "12345".
 
 When the app is running, the /env page shows the CGI environment for
 debugging and testing purposes.
+
+5.0 self.tcl
+------------
+
+This script gives an example of a Wapp application that can display
+a copy of itself.  The self-display in the /self page is actually
+a very small part of the total script.  This example also includes
+some cache-control and CSS as a demonstration of how that kind of thing
+is accomplished.

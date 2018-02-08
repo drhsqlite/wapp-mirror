@@ -6,7 +6,8 @@
 # environment.  The header and footer for each page is broken out into
 # separate subroutines.
 #
-# Just for grins, there is also a style-sheet.
+# Just for grins, there is also a style-sheet and some cache-control
+# lines to show how those things work.
 #
 package require wapp
 proc common-header {} {
@@ -28,6 +29,7 @@ proc common-footer {} {
   }
 }
 proc wapp-default {} {
+  wapp-cache-control max-age=3600
   common-header
   wapp-trim {
     <h1>Wapp Self-Display Demo</h1>
@@ -48,6 +50,7 @@ proc wapp-page-env {} {
   common-footer
 }
 proc wapp-page-self {} {
+  wapp-cache-control max-age=3600
   common-header
   set fd [open [wapp-param SCRIPT_FILENAME] rb]
   set script [read $fd]
@@ -60,6 +63,7 @@ proc wapp-page-self {} {
 }
 proc wapp-page-style.css {} {
   wapp-mimetype text/css
+  wapp-cache-control max-age=3600
   wapp-trim {
     pre {
        border: 1px solid black;
