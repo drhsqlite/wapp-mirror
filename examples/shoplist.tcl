@@ -129,6 +129,7 @@ proc wapp-default {} {
   }
   wapp-trim {
     <p><a class="button" href="%url($base/list)">Refresh</a>
+    <p><a class="button" href="%url($base/edit)">Edit</a>
     <p><a class="button" href="%url($base/list?logout=1)">Logout</a>
   }
   shopping-list-footer
@@ -150,6 +151,32 @@ proc wapp-page-common {} {
       <a class="button" href="%url($base/list?add=)%qp($x)">Add</a><br>
     }
   }
+  shopping-list-footer
+}
+
+# provide forms to edit all current entries.
+#
+proc wapp-page-edit {} {
+  if {[shopping-list-header]} return
+  set id [wapp-param id]
+  set x [wapp-param x]
+  if {[string is int -strict $id] && $x!=""} {
+    db eval {
+      UPDATE shoplist SET x=$x WHERE id=$id;
+    }
+    wapp-redirect list
+    shopping-list-footer
+    return
+  }
+  db eval {SELECT id, x FROM shoplist ORDER BY x} {
+    wapp-trim {
+      <p><form method="POST">
+      <input type="hidden" name="id" value="%html($id)">
+      <input type="text" width="20" name="x" value="%html($x)">&nbsp;&nbsp;
+      &nbsp;<input type="submit" value="Change"></form></p>
+    }
+  }
+  wapp-subst {<p><a class="button" href="list">Cancel</a>\n}
   shopping-list-footer
 }
 
