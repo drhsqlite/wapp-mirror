@@ -42,7 +42,7 @@ proc wapp-page-script.js {} {
                "&lastname="+val("lastName")+
                "&age="+val("age");
       var xhttp = new XMLHttpRequest();
-      xhttp.open("POST", "%string([wapp-param SCRIPT_NAME])/acceptjson", true);
+      xhttp.open("POST", "%string([wapp-param SCRIPT_NAME])/acceptajax", true);
       xhttp.setRequestHeader("Content-Type",
                              "application/x-www-form-urlencoded");
       xhttp.send(jx);
@@ -54,7 +54,7 @@ proc wapp-page-script.js {} {
 # This page accepts a form submission and prints it on standard output.
 # A real server would do something useful with the data.
 #
-proc wapp-page-acceptjson {} {
+proc wapp-page-acceptajax {} {
   puts "Accept Callback"
   puts "mimetype: [list [wapp-param CONTENT_TYPE]]"
   puts "content: [list [wapp-param CONTENT]]"
