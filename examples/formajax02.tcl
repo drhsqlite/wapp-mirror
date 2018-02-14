@@ -35,7 +35,9 @@ proc wapp-page-script.js {} {
   wapp-cache-control max-age=3600
   wapp-trim {
     document.getElementById("nameForm").onsubmit = function(){
-      function val(id){ return escape(document.getElementById(id).value) }
+      function val(id){
+        return encodeURIComponent(document.getElementById(id).value)
+      }
       var jx = "firstname="+val("firstName")+
                "&lastname="+val("lastName")+
                "&age="+val("age");
