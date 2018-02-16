@@ -641,6 +641,9 @@ proc wappInt-handle-request {chan useCgi} {
       wapp-default
     }
   } msg]} {
+    if {[wapp-param WAPP_MODE]=="local" || [wapp-param WAPP_MODE]=="server"} {
+      puts "ERROR: $::errorInfo"
+    }
     wapp-reset
     wapp-reply-code "500 Internal Server Error"
     wapp-mimetype text/html
