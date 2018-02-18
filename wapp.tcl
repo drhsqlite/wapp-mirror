@@ -56,14 +56,37 @@ proc wapp-unsafe {txt} {
 #     %string(...)        Escape text for use within a JSON string
 #     %unsafe(...)        No transformations of the text
 #
+# The substitutions above terminate at the first ")" character.  If the
+# text of the TCL string in ... contains ")" characters itself, use instead:
+#
+#     %html%(...)%
+#     %url%(...)%
+#     %qp%(...)%
+#     %string%(...)%
+#     %unsafe%(...)%
+#
+# In other words, use "%(...)%" instead of "(...)" to include the TCL string
+# to substitute.
+#
 # The %unsafe substitution should be avoided whenever possible, obviously.
 # In addition to the substitutions above, the text also does backslash
 # escapes.
 #
 proc wapp-subst {txt} {
   global wapp
-  regsub -all {%(html|url|qp|string|unsafe)\(([^)]+)\)} $txt \
-         {[wappInt-enc-\1 "\2"]} txt
+  regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
+         {[wappInt-enc-\1 "\3"]} txt
+  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+}
+
+# Works like wapp-subst, but also removes whitespace from the beginning
+# of lines.
+#
+proc wapp-trim {txt} {
+  global wapp
+  regsub -all {\n\s+} [string trim $txt] \n txt
+  regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
+         {[wappInt-enc-\1 "\3"]} txt
   dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
 }
 
@@ -111,17 +134,6 @@ proc wappInt-enc-qp {s} {
 }
 proc wappInt-enc-string {s} {
   return [string map {\\ \\\\ \" \\\" ' \\'} $s]
-}
-
-# Works like wapp-subst, but also removes whitespace from the beginning
-# of lines.
-#
-proc wapp-trim {txt} {
-  global wapp
-  regsub -all {\n\s+} [string trim $txt] \n txt
-  regsub -all {%(html|url|qp|string|unsafe)\(([^)]+)\)} $txt \
-         {[wappInt-enc-\1 "\2"]} txt
-  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
 }
 
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns

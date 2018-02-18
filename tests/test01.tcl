@@ -9,13 +9,14 @@ if {[catch {package require wapp}]} {
 proc wapp-default {} {
   global wapp
   set B [wapp-param BASE_URL]
+  set BX(y) $B
   set R [wapp-param SCRIPT_NAME]
   wapp-cache-control max-age=15
   wapp "<h1>Hello, World!</h1>\n"
   wapp "<ol>"
   wapp-unsafe "<li><p><a href='$R/env'>Wapp Environment</a></p>\n"
   wapp-subst {<li><p><a href='env2'>Environment using wapp-debug-env</a>\n}
-   wapp-subst {<li><p><a href='%url($B)/fullenv'>Full Environment</a>\n}
+  wapp-subst {<li><p><a href='%url%($B)%/fullenv'>Full Environment</a>\n}
   set crazy [lsort [wapp-param-list]]
   wapp-subst {<li><p><a href='%url($B)/env?keys=%url($crazy)'>}
   wapp "Environment with crazy URL</a>\n"
@@ -25,14 +26,14 @@ proc wapp-default {} {
     <li><p><a href='%url($B)/encodings'>Encoding checks</a>
     <li><p><a href='%url($B)/redirect'>Redirect to env</a>
     <li><p><a href='%url($B)/globals'>TCL global variables</a>
-    <li><p><a href='%url($B)/csptest'>Content Security Policy</a>
+    <li><p><a href='%url%($BX(y))%/csptest'>Content Security Policy</a>
     <li><p><a href='%url($B)/fileupload'>File Upload
     Using multipart/form-data</a>
     <li><p><a href='%url($B)/self'>The source code to this script</a>
   }
   set x "%string(...)"
   set v abc'def\"ghi\\jkl
-  wapp-subst {<li>%html($x) substitution test: "%string($v)"\n}
+  wapp-subst {<li>%html($x) substitution test: "%string%($v)%"\n}
   wapp "</ol>"
   if {[wapp-param-exists showenv]} {
     wapp-page-env
