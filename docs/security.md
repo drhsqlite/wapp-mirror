@@ -10,7 +10,7 @@ Security features in Wapp include the following:
   1.  The default
       [Content Security Policy](https://en.wikipedia.org/wiki/Content_Security_Policy)
       of "CSP"
-      for all Wapp applications is _default\_src 'self'_.  In that mode,
+      for all Wapp applications is _default-src 'self'_.  In that mode,
       resources must all be loaded from the same origin, the use of
       eval() and similar commands in javascript is prohibited, and
       no in-line javascript or CSS is allowed.  These limitations help
@@ -40,7 +40,7 @@ Security features in Wapp include the following:
       programmer is careful to always use "wapp-subst" and/or "wapp-trim"
       to generate replies, there is little risk of injection attacks.
 
-  5.  If the application is launched on a command-line with the --trim
+  5.  If the application is launched on a command-line with the --lint
       option, then instead of running the application, Wapp scans the
       application code looking for constructs that are unsafe.  Unsafe
       constructs include things such as using "wapp-subst" with an argument
