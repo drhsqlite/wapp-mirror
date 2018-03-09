@@ -103,13 +103,15 @@ proc wapp-trim {txt} {
 #                               value of a query parameter in a URL or in
 #                               post data or in a cookie.
 #
-#    wappInt-enc-string         Escape ", ', and \ for using inside of a
-#                               javascript string literal.
+#    wappInt-enc-string         Escape ", ', \, and < for using inside of a
+#                               javascript string literal.  The < character
+#                               is escaped to prevent "</script>" from causing
+#                               problems in embedded javascript.
 #
 #    wappInt-enc-unsafe         Perform no encoding at all.  Unsafe.
 #
 proc wappInt-enc-html {txt} {
-  return [string map {& &amp; < &lt; > &gt;} $txt]
+  return [string map {& &amp; < &lt; > &gt; \" &quot; \\ &#92;} $txt]
 }
 proc wappInt-enc-unsafe {txt} {
   return $txt
@@ -133,7 +135,7 @@ proc wappInt-enc-qp {s} {
   return $s
 }
 proc wappInt-enc-string {s} {
-  return [string map {\\ \\\\ \" \\\" ' \\'} $s]
+  return [string map {\\ \\\\ \" \\\" ' \\' < \\u003c} $s]
 }
 
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns

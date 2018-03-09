@@ -32,7 +32,7 @@ proc wapp-default {} {
     <li><p><a href='%url($B)/self'>The source code to this script</a>
   }
   set x "%string(...)"
-  set v abc'def\"ghi\\jkl
+  set v abc'def\"ghi\\jkl</script>
   wapp-subst {<li>%html($x) substitution test: "%string%($v)%"\n}
   wapp "</ol>"
   if {[wapp-param-exists showenv]} {
@@ -73,6 +73,7 @@ proc wapp-page-env2 {} {
 }
 proc wapp-page-env {} {
   global wapp
+  wapp-allow-xorigin-params
   wapp-set-cookie env-cookie simple
   wapp "<h1>Wapp Environment</h1>\n"
   wapp-unsafe "<form method='GET' action='[wapp-param SELF_URL]'>\n"
@@ -91,6 +92,14 @@ proc wapp-page-env {} {
   }
   wapp "</pre>"
   wapp-unsafe "<p><a href='[wapp-param BASE_URL]/'>Home</a></p>\n"
+  wapp-trim {<h1>Using &#37;string</h1>}
+  wapp "<pre>\n"
+  foreach var [lsort [wapp-param-list]] {
+    if {[string index $var 0]=="." &&
+         ($var!=".header" || ![wapp-param-exists showhdr])} continue
+    wapp-subst {%html($var) = %string([list [wapp-param $var]])\n}
+  }
+  wapp "</pre>"
 }
 proc wapp-page-fullenv {} {
   wapp-set-cookie env-cookie full
