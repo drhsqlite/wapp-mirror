@@ -33,14 +33,20 @@ Security features in Wapp include the following:
       that the application program will forget a decoding step or
       accidently miscode a decoding operation.
 
-  4.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
+  4.  Cookies, query parameters, and POST parameters are silently discarded
+      unless their names begin with a lower-case letter and contain only
+      alphanumerics, underscores, and minus-signs.  Hence, there is not risk
+      that unusual parameter names can cause quoting problems or other
+      vulnerabilities.
+
+  5.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
       automatically escapes generated text so that it is safe for inclusion
       within HTML, within a javascript or JSON string literal, as a URL,
       or as the value of a query parameter. As long as the application
       programmer is careful to always use "wapp-subst" and/or "wapp-trim"
       to generate replies, there is little risk of injection attacks.
 
-  5.  If the application is launched on a command-line with the --lint
+  6.  If the application is launched on a command-line with the --lint
       option, then instead of running the application, Wapp scans the
       application code looking for constructs that are unsafe.  Unsafe
       constructs include things such as using "wapp-subst" with an argument
