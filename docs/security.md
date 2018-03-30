@@ -35,7 +35,7 @@ Security features in Wapp include the following:
 
   4.  Cookies, query parameters, and POST parameters are silently discarded
       unless their names begin with a lower-case letter and contain only
-      alphanumerics, underscores, and minus-signs.  Hence, there is not risk
+      alphanumerics, underscores, and minus-signs.  Hence, there is no risk
       that unusual parameter names can cause quoting problems or other
       vulnerabilities.
 
