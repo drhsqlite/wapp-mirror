@@ -54,22 +54,22 @@ move it into the appropriate directory of the web server.
 3.0 Further information
 -----------------------
 
-  *  [Introduction To Writing Wapp Applications](docs/intro.md)
+  *  [Introduction To Writing Wapp Applications](/doc/trunk/docs/intro.md)
 
-  *  [Quick Reference](docs/quickref.md)
+  *  [Quick Reference](/doc/trunk/docs/quickref.md)
 
-  *  [Wapp Parameters](docs/params.md)
+  *  [Wapp Parameters](/doc/trunk/docs/params.md)
 
-  *  [Wapp Commands](docs/commands.md)
+  *  [Wapp Commands](/doc/trunk/docs/commands.md)
 
-  *  [URL Mapping](docs/urlmapping.md)
+  *  [URL Mapping](/doc/trunk/docs/urlmapping.md)
 
-  *  [Security Features](docs/security.md)
+  *  [Security Features](/doc/trunk/docs/security.md)
 
-  *  [How To Compile wapptclsh - Or Not](docs/compiling.md)
+  *  [How To Compile wapptclsh - Or Not](/doc/trunk/docs/compiling.md)
 
-  *  [Limitations of Wapp](docs/limitations.md)
+  *  [Limitations of Wapp](/doc/trunk/docs/limitations.md)
 
   *  [Example Applications](/file/examples)
 
-  *  [Real-World Uses Of Wapp](docs/usageexamples.md)
+  *  [Real-World Uses Of Wapp](/doc/trunk/docs/usageexamples.md)
