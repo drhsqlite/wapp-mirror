@@ -49,6 +49,6 @@ To build wapptclsh, make a copy of either Makefile or Makefile.macos in the
 top-level directory of the source tree.  Change a few settings.  (This step is
 not hard as each Makefile is less than 20 lines long.)  Then run the Makefile.
 
-There is no configure scripts or other automation to help do the build.  Maybe
+There is no configure script or other automation to help do the build.  Maybe
 we will add one someday.  But for now, the Makefile is simple enough to work
 stand-alone.
