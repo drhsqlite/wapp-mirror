@@ -42,7 +42,7 @@ The following is a complete list of the public interface procs in Wapp:
      under construction, using the %html, %url, %qp, %string, and %unsafe
      substitutions.  The difference is that this routine also removes
      surplus whitespace from the left margin, so that if the _TEXT_
-     argument is intended in the source script, it will appear at the
+     argument is indented in the source script, it will appear at the
      left margin in the generated output.
 
   +  **wapp-param** _NAME_ _DEFAULT_  
