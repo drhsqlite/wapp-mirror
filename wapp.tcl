@@ -602,7 +602,7 @@ proc wappInt-handle-request {chan useCgi} {
     dict set wapp SCRIPT_NAME {}
   }
   if {![dict exists $wapp PATH_INFO]} {
-    # If PATH_INFO is missing (ex: nginx) the construct it
+    # If PATH_INFO is missing (ex: nginx) then construct it
     set URI [dict get $wapp REQUEST_URI]
     set skip [string length [dict get $wapp SCRIPT_NAME]]
     dict set wapp PATH_INFO [string range $URI $skip end]
