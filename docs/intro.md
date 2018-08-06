@@ -79,7 +79,7 @@ normally use "wapptclsh" for the following reasons:
       chroot jail.
 
    +  Wapptclsh has SQLite built-in and SQLite turns out to be very
-      useful for the kinds of small application where Wapp excels.
+      useful for the kinds of small applications where Wapp excels.
 
    +  Wapptclsh knows how to process "package require wapp".  If you
       run with ordinary tclsh, you might need to change the 
