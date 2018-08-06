@@ -714,7 +714,7 @@ proc wappInt-handle-request {chan useCgi} {
   }
   puts $chan "Content-Length: [string length $reply]\r"
   puts $chan \r
-  puts $chan $reply
+  puts -nonewline $chan $reply
   flush $chan
   wappInt-close-channel $chan
 }
