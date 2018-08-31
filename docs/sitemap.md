@@ -5,7 +5,7 @@ Site Map
   *  [Documentation](/doc/trunk/docs/doclist.html)
   *  [Download](/doc/trunk/docs/download.md)
   *  [Forum](/forum)
-  *  [Copyright](/copyright)
+  *  [Copyright](/doc/trunk/docs/copyright.md)
   *  [Subscribe](/subscribe)
   *  [Timeline](/timeline)
   *  [Files](/dir?type=tree)
