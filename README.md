@@ -4,7 +4,7 @@ Wapp - A Web-Application Framework for TCL
 1.0 Introduction
 ----------------
 
-Wapp is a new framework for writing web applications in TCL,
+Wapp is a framework for writing web applications in TCL,
 with the following advantages:
 
   *   Very small API &rarr; easy to learn and use
