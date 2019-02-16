@@ -839,6 +839,9 @@ proc wappInt-scgi-readable-unsafe {chan} {
 #
 # Additional options:
 #
+#    -nowait              Do not wait in the event loop.  Return immediately
+#                         after all event handlers are established.
+#
 #    -trace               "puts" each request URL as it is handled, for
 #                         debugging
 #
@@ -852,6 +855,7 @@ proc wapp-start {arglist} {
   global env
   set mode auto
   set port 0
+  set nowait 0
   set n [llength $arglist]
   for {set i 0} {$i<$n} {incr i} {
     set term [lindex $arglist $i]
@@ -874,6 +878,9 @@ proc wapp-start {arglist} {
       }
       -cgi {
         set mode "cgi"
+      }
+      -nowait {
+        set nowait 1
       }
       -trace {
         proc wappInt-trace {} {
@@ -918,7 +925,9 @@ proc wapp-start {arglist} {
   } else {
     wappInt-start-listener $port local
   }
-  vwait ::forever
+  if {!$nowait} {
+    vwait ::forever
+  }
 }
 
 # Call this version 1.0
