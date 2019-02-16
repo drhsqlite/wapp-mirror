@@ -15,6 +15,9 @@ with the following advantages:
   *   The Wapp framework itself is a  single-file TCL script
       that is "source"-ed, "package require"-ed, 
       or even copy/pasted into the application TCL script
+  *   The framework can easily be embedded within a larger application
+      to provide a web-based monitoring capability to an existing
+      code base
   *   2-clause BSD license
 
 

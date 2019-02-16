@@ -22,9 +22,11 @@ The following is a complete list of the public interface procs in Wapp:
   +  **wapp-start** _ARGLIST_  
      Start up the application.  _ARGLIST_ is typically the value of $::argv,
      though it might be some subset of $::argv if the containing application
-     has already processed some command-line parameters for itself.  This
-     proc never returns, and so it should be very last command in the application
-     script.
+     has already processed some command-line parameters for itself.  By default,
+     this proc never returns, and so it should be very last command in the
+     application script.  To embed Wapp in a larger application, include
+     the -nowait option in _ARGLIST_ and this proc will return immediately
+     after setting up all necessary file events.
 
   +  **wapp-subst** _TEXT_  
      This command appends text to the end of reply to an HTTP request.
