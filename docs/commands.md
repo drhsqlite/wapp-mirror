@@ -38,11 +38,12 @@ The following is a complete list of the public interface procs in Wapp:
      "%unsafe(...)".  The substitutions are escaped (except in the case of
      "%unsafe(...)") so that the result is safe for inclusion within the
      body of an HTML document, a URL, a query parameter, or a javascript or
-     JSON string literal, respectively.  <b>Bug:</b> As currently implemented,
-     command substitution, but not variable substitution, occurs outside of
-     the quoted regions. We have an alternative implementation that avoids
-     this, but it is a lot slower. For now, just avoid using the "[" character
-     in your HTML.  Substitute "\&#91;" instead.
+     JSON string literal, respectively.  <b>Bug:</b> When using Tcl 8.6 or
+     earlier, command substitution, but not variable substitution, occurs
+     outside of the quoted regions. This problem is fixed using the new
+     -command option to the regsub command in Tcl 8.7.  Nevertheless, 
+     it is suggested that you avoid using the "[" character outside of
+     the %-quotes.  Use "\&#91;" instead.
 
   +  **wapp-trim** _TEXT_  
      Just like wapp-subst, this routine appends _TEXT_ to the web page

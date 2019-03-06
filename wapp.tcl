@@ -73,22 +73,41 @@ proc wapp-unsafe {txt} {
 # In addition to the substitutions above, the text also does backslash
 # escapes.
 #
-proc wapp-subst {txt} {
-  global wapp
-  regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
-         {[wappInt-enc-\1 "\3"]} txt
-  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
-}
-
-# Works like wapp-subst, but also removes whitespace from the beginning
-# of lines.
+# The wapp-trim proc works the same as wapp-subst except that it also removes
+# whitespace from the left margin, so that the generated HTML/CSS/Javascript
+# does not appear to be indented when delivered to the client web browser.
 #
-proc wapp-trim {txt} {
-  global wapp
-  regsub -all {\n\s+} [string trim $txt] \n txt
-  regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
-         {[wappInt-enc-\1 "\3"]} txt
-  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+if {$tcl_version>=8.7} {
+  proc wapp-subst {txt} {
+    global wapp
+    regsub -all -command \
+       {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt wappInt-enc txt
+    dict append wapp .reply [subst -novariables -nocommand $txt]
+  }
+  proc wapp-trim {txt} {
+    global wapp
+    regsub -all {\n\s+} [string trim $txt] \n txt
+    regsub -all -command \
+       {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt wappInt-enc txt
+    dict append wapp .reply [subst -novariables -nocommand $txt]
+  }
+  proc wappInt-enc {all mode nu1 txt} {
+    return [uplevel 2 "wappInt-enc-$mode \"$txt\""]
+  }
+} else {
+  proc wapp-subst {txt} {
+    global wapp
+    regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
+           {[wappInt-enc-\1 "\3"]} txt
+    dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+  }
+  proc wapp-trim {txt} {
+    global wapp
+    regsub -all {\n\s+} [string trim $txt] \n txt
+    regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
+           {[wappInt-enc-\1 "\3"]} txt
+    dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+  }
 }
 
 # There must be a wappInt-enc-NAME routine for each possible substitution
