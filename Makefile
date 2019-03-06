@@ -1,7 +1,7 @@
 #!/usr/bin/make
 
 CC = gcc -Os -static
-TCLLIB = /home/drh/tcl/lib/libtcl8.6.a -lm -lz -lpthread -ldl
+TCLLIB = /home/drh/tcl/lib/libtcl8.7.a -lm -lz -lpthread -ldl
 TCLINC = /home/drh/tcl/include
 TCLSH = tclsh
 

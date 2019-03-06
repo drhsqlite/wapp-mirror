@@ -30,14 +30,19 @@ The following is a complete list of the public interface procs in Wapp:
 
   +  **wapp-subst** _TEXT_  
      This command appends text to the end of reply to an HTTP request.
-     The _TEXT_ argument should be enclosed in {...} to prevent substitutions.
+     The _TEXT_ argument should be enclosed in {...} to prevent 
+     accidental substitutions.
      The "wapp-subst" command itself will do all necessary backslash
-     substitutions.  Command and variable substitutions only occur within
+     substitutions.  Command and variable substitutions occur within
      "%html(...)", "%url(...)", "%qp(...)", "%string(...)", and
      "%unsafe(...)".  The substitutions are escaped (except in the case of
      "%unsafe(...)") so that the result is safe for inclusion within the
      body of an HTML document, a URL, a query parameter, or a javascript or
-     JSON string literal, respectively.
+     JSON string literal, respectively.  <b>Bug:</b> As currently implemented,
+     command substitution, but not variable substitution, occurs outside of
+     the quoted regions. We have an alternative implementation that avoids
+     this, but it is a lot slower. For now, just avoid using the "[" character
+     in your HTML.  Substitute "\&#91;" instead.
 
   +  **wapp-trim** _TEXT_  
      Just like wapp-subst, this routine appends _TEXT_ to the web page
