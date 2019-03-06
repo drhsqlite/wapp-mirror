@@ -4,28 +4,16 @@
 # upload using <input type="file">
 #
 package require wapp
-proc common-header {} {
+proc wapp-default {} {
+  wapp-content-security-policy {default-src 'self'; img-src 'self' data:}
   wapp-trim {
     <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link href="%url([wapp-param SCRIPT_NAME]/style.css)" rel="stylesheet">
     <title>Wapp File-Upload Demo</title>
     </head>
     <body>
-  }
-}
-proc common-footer {} {
-  wapp-trim {
-    </body>
-    </html>
-  }
-}
-proc wapp-default {} {
-  wapp-cache-control max-age=3600
-  common-header
-  wapp-trim {
     <h1>Wapp File-Upload Demo</h1>
   }
   # NB:  You must set enctype="multipart/form-data" on your <form> in order
@@ -54,22 +42,32 @@ proc wapp-default {} {
       <h1>Uploaded File Content</h1>
       <p>Filename: %html($filename)<br>
       MIME-Type: %html($mimetype)<br>
-      Content:</p>
-      <blockquote><pre>
-      %html($content)
-      </pre></blockquote>
+    }
+    if {[string match image/* $mimetype]} {
+      # If the mimetype is an image, display the image using an
+      # in-line <img> mark.  Note that the content-security-policy
+      # must be changed to allow "data:" for type img-src in order
+      # for this to work.
+      set b64 [binary encode base64 $content]
+      wapp-trim {
+        Content:</p>
+        <blockquote>
+        <img src='data:%html($mimetype);base64,%html($b64)'>
+        </blockquote>
+      }
+    } else {
+      # Anything other than image, just show it as text.
+      wapp-trim {
+        Content:</p>
+        <blockquote><pre>
+        %html($content)
+        </pre></blockquote>
+      }
     }
   }
-  common-footer
-}
-proc wapp-page-style.css {} {
-  wapp-mimetype text/css
-  wapp-cache-control max-age=3600
   wapp-trim {
-    pre {
-       border: 1px solid black;
-       padding: 1ex;
-    }
+    </body>
+    </html>
   }
 }
 wapp-start $argv
