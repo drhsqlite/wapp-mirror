@@ -52,7 +52,7 @@ The following is a complete list of the public interface procs in Wapp:
      The %-substitution is terminated by the first close parenthesis, not the
      first matching close-parenthesis.
 
-  +  **wapp-trim** _TEXT_  
+  +  <a name='wapp-trim'></a>**wapp-trim** _TEXT_  
      Just like wapp-subst, this routine appends _TEXT_ to the web page
      under construction, using the %html, %url, %qp, %string, and %unsafe
      substitutions.  The difference is that this routine also removes

@@ -5,7 +5,7 @@ Wapp strives for security by default.  Applications can disable security
 features on an as-needed basis, but the default setting for security
 features is always "on".
 
-Security features in Wapp include the following:
+Security features in Wapp include:
 
   1.  The default
       [Content Security Policy](https://en.wikipedia.org/wiki/Content_Security_Policy)
@@ -18,15 +18,17 @@ Security features in Wapp include the following:
       [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting)
       attacks, even in the face of application coding errors. If these
       restrictions are too severe for an application, the CSP can be
-      relaxed using the "wapp-content-security-policy" command.
+      relaxed or disabled using the 
+      "[wapp-content-security-policy](commands.md#csp)" command.
 
   2.  Access to GET query parameters and POST parameters is prohibited
       unless the origin of the request is the application itself, as
       determined by the Referrer field in the HTTP header. This feature
       helps to prevent
       [Cross-site Request Forgery](https://en.wikipedia.org/wiki/Cross-site_request_forgery)
-      attacks. The "wapp-allow-xorigin-params" command can be used to
-      disable this protection on a case-by-case basis.
+      attacks. The 
+      "[wapp-allow-xorigin-params](commands.md#allow-xorigin)" command 
+      can be used to disable this protection on a case-by-case basis.
 
   3.  Cookies, query parameters, and POST parameters are automatically
       decoded before they reach application code. There is no risk
@@ -39,7 +41,8 @@ Security features in Wapp include the following:
       that unusual parameter names can cause quoting problems or other
       vulnerabilities.
 
-  5.  Reply text generated using the "wapp-subst" and "wapp-trim" commands
+  5.  Reply text generated using the "[wapp-subst](commands.md#wapp-subst)"
+      and "[wapp-trim](commands.md#wapp-trim)" commands
       automatically escapes generated text so that it is safe for inclusion
       within HTML, within a javascript or JSON string literal, as a URL,
       or as the value of a query parameter. As long as the application
@@ -49,7 +52,8 @@ Security features in Wapp include the following:
   6.  If the application is launched on a command-line with the --lint
       option, then instead of running the application, Wapp scans the
       application code looking for constructs that are unsafe.  Unsafe
-      constructs include things such as using "wapp-subst" with an argument
+      constructs include things such as using 
+      "[wapp-subst](commands.md#wapp-subst)" with an argument
       that is not contained within {...}.
 
 Part of what makes Wapp easy to use is that it helps free application
