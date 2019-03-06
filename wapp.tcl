@@ -75,9 +75,14 @@ proc wapp-unsafe {txt} {
 #
 proc wapp-subst {txt} {
   global wapp
-  regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
-         {[wappInt-enc-\1 "\3"]} txt
-  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+  set txt [subst -novar -nocom $txt]
+  while {[regexp {^(.*?)%(html|url|qp|string|unsafe)(|%)\((.+?)\)\3(.*)$} \
+          $txt all before verb m1 arg after]} {
+    set arg [uplevel 1 [list subst $arg]]
+    dict append wapp .reply $before[wappInt-enc-$verb $arg]
+    set txt $after
+  }
+  dict append wapp .reply $txt
 }
 
 # Works like wapp-subst, but also removes whitespace from the beginning
@@ -85,10 +90,14 @@ proc wapp-subst {txt} {
 #
 proc wapp-trim {txt} {
   global wapp
-  regsub -all {\n\s+} [string trim $txt] \n txt
-  regsub -all {%(html|url|qp|string|unsafe){1,1}?(|%)\((.+)\)\2} $txt \
-         {[wappInt-enc-\1 "\3"]} txt
-  dict append wapp .reply [uplevel 1 [list subst -novariables $txt]]
+  regsub -all {\n\s+} [subst -nocom -novar [string trim $txt]] \n txt
+  while {[regexp {^(.*?)%(html|url|qp|string|unsafe)(|%)\((.+?)\)\3(.*)$} \
+          $txt all before verb m1 arg after]} {
+    set arg [uplevel 1 [list subst $arg]]
+    dict append wapp .reply $before[wappInt-enc-$verb $arg]
+    set txt $after
+  }
+  dict append wapp .reply $txt
 }
 
 # There must be a wappInt-enc-NAME routine for each possible substitution
