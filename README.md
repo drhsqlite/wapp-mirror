@@ -58,21 +58,13 @@ move it into the appropriate directory of the web server.
 -----------------------
 
   *  [Introduction To Writing Wapp Applications](/doc/trunk/docs/intro.md)
-
   *  [Quick Reference](/doc/trunk/docs/quickref.md)
-
   *  [Wapp Parameters](/doc/trunk/docs/params.md)
-
   *  [Wapp Commands](/doc/trunk/docs/commands.md)
-
   *  [URL Mapping](/doc/trunk/docs/urlmapping.md)
-
   *  [Security Features](/doc/trunk/docs/security.md)
-
   *  [How To Compile wapptclsh - Or Not](/doc/trunk/docs/compiling.md)
-
   *  [Limitations of Wapp](/doc/trunk/docs/limitations.md)
-
   *  [Example Applications](/file/examples)
-
   *  [Real-World Uses Of Wapp](/doc/trunk/docs/usageexamples.md)
+  *  [Debugging Hints](/doc/trunk/docs/debughints.md)
