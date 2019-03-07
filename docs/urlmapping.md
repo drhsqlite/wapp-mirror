@@ -14,25 +14,24 @@ A Uniform Resource Locator (URL) is divided into parts as follows:
 
 
 Assuming that /demo/env.tcl is the script that implements the application,
-tradition CGI and SCGI, and Wapp, break a URL down like this:
+traditional CGI and SCGI provide the following breakdown:
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
-            \_________/ \__________/\__________/
-                 |           |          |
-             HTTP_HOST  SCRIPT_NAME  PATH_INFO
+            \_________/ \__________/\__________/ \__________/
+                 |           |          |             |
+             HTTP_HOST  SCRIPT_NAME  PATH_INFO   QUERY_STRING
+
+Wapp provides additional variables not found in traditional CGI:
 
 >
+                SELF_URL
+     ______________|___________________
+    /                                  \
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
     \______________________________/ \_/ \_____/
                    |                  |     |
                 BASE_URL         PATH_HEAD  '-- PATH_TAIL     
-
->
-    https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
-    \__________________________________/         \__________/
-                   |                                  |
-                SELF_URL                         QUERY_STRING
 
 
 2.0 URL Mapping
