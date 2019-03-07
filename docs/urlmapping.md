@@ -8,7 +8,7 @@ A Uniform Resource Locator (URL) is divided into parts as follows:
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
-    \___/   \_________/ \______________________/ \__________/ \_____/
+    \___/   \_________/\_______________________/ \__________/ \_____/
       |          |              |                     |          |
     scheme   authority        path                  query      fragment
 
@@ -18,7 +18,7 @@ traditional CGI and SCGI provide the following breakdown:
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
-            \_________/ \__________/\__________/ \__________/
+            \_________/\___________/\__________/ \__________/
                  |           |          |             |
              HTTP_HOST  SCRIPT_NAME  PATH_INFO   QUERY_STRING
 

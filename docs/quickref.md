@@ -44,8 +44,9 @@ Wapp Quick Reference
 |**wapp-unsafe** _TEXT_|&rarr;|Append _TEXT_ that contains nothing that needs to be escaped|
 
 
-3.0 Parameters
---------------
+<a name="cgiparams"></a>
+3.0 CGI Parameters
+------------------
 
 >
 |BASE\_URL|&rarr;|URL for the Wapp script without a method|
@@ -56,7 +57,7 @@ Wapp Quick Reference
 |HTTP\_COOKIE|&rarr;|Raw, unparsed cookies|
 |HTTP\_HOST|&rarr;|Hostname to which this request was sent|
 |HTTP\_USER\_AGENT|&rarr;|Name of client program that sent current request|
-|HTTPS|&rarr;|Exists and has value "on" if the request is encrypted|
+|HTTPS|&rarr;|Exists and has value "on" if the request is TLS encrypted|
 |PATH\_HEAD|&rarr;|First element of PATH\_INFO. Determines request handler|
 |PATH\_INFO|&rarr;|URL path beyond the application script name|
 |PATH\_TAIL|&rarr;|Part of PATH\_INFO beyond PATH\_HEAD|
@@ -76,21 +77,21 @@ Assuming "env.tcl" is the name of the Wapp application script:
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
-            \_________/ \__________/\__________/
+            \_________/\___________/\__________/
                  |           |          |
              HTTP_HOST  SCRIPT_NAME  PATH_INFO
-
->
-    SCRIPT_FILENAME := DOCUMENT_ROOT + SCRIPT_NAME
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
     \______________________________/ \_/ \_____/
                    |                  |     |
-                BASE_URL         PATH_HEAD  '-- PATH_TAIL     
-
->
+                BASE_URL         PATH_HEAD  |-- PATH_TAIL
+                                      |   __|__
+                                     / \ /     \
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
     \__________________________________/         \__________/
                    |                                  |
                 SELF_URL                         QUERY_STRING
+
+>
+    SCRIPT_FILENAME := DOCUMENT_ROOT + SCRIPT_NAME

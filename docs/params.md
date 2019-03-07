@@ -192,7 +192,7 @@ The following CGI parameters are available:
      The IP address from which the HTTP request originated.
 
   +  **REMOTE\_PORT**  
-     The TCP port from which teh HTTP request originated.
+     The TCP port from which the HTTP request originated.
 
   +  **REQUEST\_METHOD**  
      "GET" or "HEAD" or "POST"
@@ -270,7 +270,26 @@ the following CGI environment values are generated:
 
 The first five elements of the example above, HTTP\_HOST through
 QUERY\_STRING, are standard CGI.  The final four elements are Wapp
-extensions.
+extensions.  The following is the same information show in a diagram:
+
+>
+    http://example.com/cgi-bin/script/method/extra/path?q1=5
+           \_________/\_____________/\________________/ \__/
+                |            |               |           |
+            HTTP_HOST   SCRIPT_NAME      PATH_INFO       `-- QUERY_STRING
+
+>
+    http://example.com/cgi-bin/script/method/extra/path?q1=5
+    \_______________________________/ \____/ \________/
+                    |                    |        | 
+                BASE_URL           PATH_HEAD   PATH_TAIL
+
+
+>
+    http://example.com/cgi-bin/script/method/extra/path?q1=5
+    \______________________________________/
+                       |
+                    SELF_URL
 
 ### 3.2 Undefined Parameters When Using SCGI on Nginx
 
