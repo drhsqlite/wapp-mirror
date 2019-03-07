@@ -133,7 +133,8 @@ for web pages that only query information.  Do not invoke
 wapp-allow-xorigin-params on pages where the parameters can be used
 to change server-side state.
 
-3.0 CGI Parameter Details
+<a name='cgidetail'></a>
+3.0 CGI Parameter Details [(Quick reference)](quickref.md#cgiparams)
 -------------------------
 
 The CGI parameters in Wapp describe the HTTP request that is to be answered
@@ -280,6 +281,12 @@ extensions.  The following is the same information show in a diagram:
 
 >
     http://example.com/cgi-bin/script/method/extra/path?q1=5
+           \_________/\_______________________________/ \__/
+                |                    |                   |
+            HTTP_HOST         REQUEST_URI                `-- QUERY_STRING
+
+>
+    http://example.com/cgi-bin/script/method/extra/path?q1=5
     \_______________________________/ \____/ \________/
                     |                    |        | 
                 BASE_URL           PATH_HEAD   PATH_TAIL
@@ -287,9 +294,9 @@ extensions.  The following is the same information show in a diagram:
 
 >
     http://example.com/cgi-bin/script/method/extra/path?q1=5
-    \______________________________________/
-                       |
-                    SELF_URL
+    \______________________________________/ \________/
+                       |                          |
+                    SELF_URL                   PATH_TAIL
 
 ### 3.2 Undefined Parameters When Using SCGI on Nginx
 

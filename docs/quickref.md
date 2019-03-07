@@ -45,7 +45,7 @@ Wapp Quick Reference
 
 
 <a name="cgiparams"></a>
-3.0 CGI Parameters
+3.0 CGI Parameters [(More detail)](params.md#cgidetail)
 ------------------
 
 >
@@ -77,17 +77,17 @@ Assuming "env.tcl" is the name of the Wapp application script:
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
-            \_________/\___________/\__________/
-                 |           |          |
-             HTTP_HOST  SCRIPT_NAME  PATH_INFO
+            \_________/\___________/\__________/ \__________/
+                 |           |          |             |
+             HTTP_HOST  SCRIPT_NAME  PATH_INFO    QUERY_STRING
 
 >
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
     \______________________________/ \_/ \_____/
                    |                  |     |
-                BASE_URL         PATH_HEAD  |-- PATH_TAIL
-                                      |   __|__
-                                     / \ /     \
+                BASE_URL         PATH_HEAD  `-- PATH_TAIL
+
+>
     https://wapp.tcl.tk/demo/env.tcl/abc/def/ghi?a=5&b=22.425#point42
     \__________________________________/         \__________/
                    |                                  |

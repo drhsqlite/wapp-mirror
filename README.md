@@ -22,6 +22,7 @@ Documentation
   *  [Quick Reference](/doc/trunk/docs/quickref.md)
   *  [Wapp Parameters](/doc/trunk/docs/params.md)
   *  [Wapp Commands](/doc/trunk/docs/commands.md)
+  *  [CGI Parameters](/doc/trunk/docs/quickref.md#cgiparams)
   *  [URL Mapping](/doc/trunk/docs/urlmapping.md)
   *  [Security Features](/doc/trunk/docs/security.md)
   *  [How To Compile wapptclsh - Or Not](/doc/trunk/docs/compiling.md)
