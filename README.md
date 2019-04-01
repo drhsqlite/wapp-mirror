@@ -5,13 +5,11 @@ Wapp is a framework for writing web applications in TCL,
 with the following advantages:
 
   *   Small and simple API &rarr; easy to learn and use
-  *   A complete application is contained in a single file of TCL
+  *   A complete app is a single small file of TCL
   *   Resistant to attacks and exploits
   *   Cross-platform &rarr; CGI, SCGI, or a built-in web server
   *   The Wapp framework itself is a single-file TCL script
-  *   Easy to embedded in a larger application
-      to provide a web-based monitoring capability
-  *   The MVC design pattern is supported but not required
+  *   Easy to embedded in a larger application, if desired
   *   2-clause BSD license
 
 Documentation

@@ -167,7 +167,7 @@ above can be simplified to the following:
     }
     wapp-start $argv
 
-Most Wapp applications contain an /env page for debugging and
+Many Wapp applications contain an /env page for debugging and
 trouble-shooting purpose.  Examples:
 <https://sqlite.org/checklists/env> and
 <https://sqlite.org/search?env=1>

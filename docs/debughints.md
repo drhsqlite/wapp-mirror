@@ -3,11 +3,12 @@ Hints For Debugging Wapp Applications
 
 Here are some suggestions for debugging Wapp applications:
 
-  +  If it seems like the [wapp-param](#wapp-param) command is not 
+  +  If it seems like the [wapp-param](commands.md#wapp-param) command is not 
      working correctly, that might be because the same-origin policy
      is preventing query parameters from being parsed.
-     Try adding this command to the top of the page generator proc, at
-     least temporarily to see if that clears the problem.
+     Try adding the [wapp-allow-xorigin-parameters](commands.md#allow-xorigin)
+     command to the top of the page generator proc, at
+     least temporarily, to see if that clears the problem.
 
   +  If parts of your webpage do not appear to be working, that might
      be due to the restrictive default 

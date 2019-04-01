@@ -56,6 +56,23 @@ Security features in Wapp include:
       "[wapp-subst](commands.md#wapp-subst)" with an argument
       that is not contained within {...}.
 
+  7.  The new (non-standard) SAME\_ORIGIN variable is provided. This variable
+      has a value of "1" or "0" depending on whether or not the current HTTP
+      request comes from the same origin. Applications can use this information
+      to enhance their own security precautions by refusing to provide sensitive
+      information or perform sensitive actions if SAME\_ORIGIN is not "1".
+
+  8.  The --scgi mode only accepts SCGI requests from localhost.  This prevents
+      an attacker from sending an SCGI request directly to the script and bypassing
+      the webserver in the event that the site firewall is misconfigured or omitted.
+
+  9.  Though cookies, query parameters and POST parameters are accessed using
+      the same mechanism as CGI variables, the CGI variable names use a disjoint
+      namespace.  (CGI variables are all upper-case and all others are lower-case.)
+      Hence, it is not possible for a remote attacher to create a fake CGI variable 
+      or override the value of a CGI variable.
+
+
 Part of what makes Wapp easy to use is that it helps free application
 developers from the worry of accidently introducing security vulnerabilities
 via programming errors.  Of course, no framework is fool-proof.  Developers
