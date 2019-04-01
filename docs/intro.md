@@ -63,8 +63,13 @@ Run the hello-world program as SCGI like this:
 >
     wapptclsh main.tcl --scgi 9000
 
-Then configure your web-server to send SCGI requests to TCL port 9000
-for some specific URI, and point your web-browser at that URI.
+Then configure your web-server to send SCGI requests to TCP port 9000
+for some specific URI, and point your web-browser at that URI.  By
+default, the web-server must be on the same machine as the wapp script.
+The --scgi option only accepts SCGI requests from IP address 127.0.0.1.
+If your webserver is running on a different machine, use the --remote-scgi
+option instead, probably with a --fromip option to specify the IP address
+of the machine that is running the webserver.
 
 1.2 Using Plain Old Tclsh
 -------------------------

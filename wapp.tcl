@@ -367,17 +367,22 @@ proc wappInt-trace {} {}
 #    port            Listen on this TCP port.  0 means to select a port
 #                    that is not currently in use
 #
-#    wappmode        One of "scgi", "server", or "local".
+#    wappmode        One of "scgi", "remote-scgi", "server", or "local".
 #
-proc wappInt-start-listener {port wappmode} {
-  if {$wappmode=="scgi"} {
+#    fromip          If not {}, then reject all requests from IP addresses
+#                    other than $fromip
+#
+proc wappInt-start-listener {port wappmode fromip} {
+  if {[string match *scgi $wappmode]} {
     set type SCGI
-    set server [list wappInt-new-connection wappInt-scgi-readable $wappmode]
+    set server [list wappInt-new-connection \
+                wappInt-scgi-readable $wappmode $fromip]
   } else {
     set type HTTP
-    set server [list wappInt-new-connection wappInt-http-readable $wappmode]
+    set server [list wappInt-new-connection \
+                wappInt-http-readable $wappmode $fromip]
   }
-  if {$wappmode=="local"} {
+  if {$wappmode=="local" || $wappmode=="scgi"} {
     set x [socket -server $server -myaddr 127.0.0.1 $port]
   } else {
     set x [socket -server $server $port]
@@ -386,6 +391,8 @@ proc wappInt-start-listener {port wappmode} {
   set port [lindex $coninfo 2]
   if {$wappmode=="local"} {
     wappInt-start-browser http://127.0.0.1:$port/
+  } elseif {$fromip!=""} {
+    puts "Listening for $type requests on TCP port $port from IP $fromip"
   } else {
     puts "Listening for $type requests on TCP port $port"
   }
@@ -408,10 +415,15 @@ proc wappInt-start-browser {url} {
 # arguments are added by the socket command.
 #
 # Arrange to invoke $callback when content is available on the new socket.
-# The $callback will process inbound HTTP or SCGI content.
+# The $callback will process inbound HTTP or SCGI content.  Reject the
+# request if $fromip is not an empty string and does not match $ip.
 #
-proc wappInt-new-connection {callback wappmode chan ip port} {
+proc wappInt-new-connection {callback wappmode fromip chan ip port} {
   upvar #0 wappInt-$chan W
+  if {$fromip!="" && ![string match $fromip $ip]} {
+    close $chan
+    return
+  }
   set W [dict create REMOTE_ADDR $ip REMOTE_PORT $port WAPP_MODE $wappmode \
          .header {}]
   fconfigure $chan -blocking 0 -translation binary
@@ -807,6 +819,7 @@ proc wappInt-scgi-readable-unsafe {chan} {
     # An SGI header is short.  This implementation assumes the entire
     # header is available all at once.
     #
+    dict set W .remove_addr [dict get $W REMOTE_ADDR]
     set req [read $chan 15]
     set n [string length $req]
     scan $req %d:%s len hdr
@@ -825,6 +838,7 @@ proc wappInt-scgi-readable-unsafe {chan} {
       dict set W .toread $len
     } else {
       # There is no query content, so handle the request immediately
+      dict set W SERVER_ADDR [dict get $W .remove_addr]
       set wapp $W
       wappInt-handle-request $chan 0
     }
@@ -836,6 +850,7 @@ proc wappInt-scgi-readable-unsafe {chan} {
     dict set W .toread [expr {[dict get $W .toread]-[string length $got]}]
     if {[dict get $W .toread]<=0} {
       # Handle the request as soon as all the query content is received
+      dict set W SERVER_ADDR [dict get $W .remove_addr]
       set wapp $W
       wappInt-handle-request $chan 0
     }
@@ -849,7 +864,9 @@ proc wappInt-scgi-readable-unsafe {chan} {
 #
 #    -local $PORT          Listen for HTTP requests on 127.0.0.1:$PORT
 #
-#    -scgi $PORT           Listen for SCGI requests on TCP port $PORT
+#    -scgi $PORT           Listen for SCGI requests on 127.0.0.1:$PORT
+#
+#    -remote-scgi $PORT    Listen for SCGI requests on TCP port $PORT
 #
 #    -cgi                  Handle a single CGI request
 #
@@ -860,6 +877,10 @@ proc wappInt-scgi-readable-unsafe {chan} {
 # on that TCP port.
 #
 # Additional options:
+#
+#    -fromip GLOB         Reject any incoming request where the remote
+#                         IP address does not match the GLOB pattern.  This
+#                         value defaults to '127.0.0.1' for -local and -scgi.
 #
 #    -nowait              Do not wait in the event loop.  Return immediately
 #                         after all event handlers are established.
@@ -878,6 +899,7 @@ proc wapp-start {arglist} {
   set mode auto
   set port 0
   set nowait 0
+  set fromip {}
   set n [llength $arglist]
   for {set i 0} {$i<$n} {incr i} {
     set term [lindex $arglist $i]
@@ -891,15 +913,26 @@ proc wapp-start {arglist} {
       -local {
         incr i;
         set mode "local"
+        set fromip 127.0.0.1
         set port [lindex $arglist $i]
       }
       -scgi {
         incr i;
         set mode "scgi"
+        set fromip 127.0.0.1
+        set port [lindex $arglist $i]
+      }
+      -remote-scgi {
+        incr i;
+        set mode "remote-scgi"
         set port [lindex $arglist $i]
       }
       -cgi {
         set mode "cgi"
+      }
+      -fromip {
+        incr i
+        set fromip [lindex $arglist $i]
       }
       -nowait {
         set nowait 1
@@ -932,23 +965,21 @@ proc wapp-start {arglist} {
       }
     }
   }
-  if {($mode=="auto"
-       && [info exists env(GATEWAY_INTERFACE)]
-       && [string match CGI/1.* $env(GATEWAY_INTERFACE)])
-    || $mode=="cgi"
-  } {
+  if {$mode=="auto"} {
+    if {[info exists env(GATEWAY_INTERFACE)]
+        && [string match CGI/1.* $env(GATEWAY_INTERFACE)]} {
+      set mode cgi
+    } else {
+      set mode local
+    }
+  }
+  if {$mode=="cgi"} {
     wappInt-handle-cgi-request
-    return
-  }
-  if {$mode=="scgi"} {
-    wappInt-start-listener $port scgi
-  } elseif {$mode=="server"} {
-    wappInt-start-listener $port server
   } else {
-    wappInt-start-listener $port local
-  }
-  if {!$nowait} {
-    vwait ::forever
+    wappInt-start-listener $port $mode $fromip
+    if {!$nowait} {
+      vwait ::forever
+    }
   }
 }
 

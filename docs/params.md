@@ -248,6 +248,10 @@ The following are supplemental environment parameters are added by Wapp:
      The URL for the current page, stripped of query parameter. This is
      useful for filling in the action= attribute of forms.
 
+  +  **SERVER\_ADDR**  
+     In SCGI mode only, this variable is the address of the webserver from which
+     the SCGI request originates.
+
   +  **WAPP\_MODE**  
      This parameter has a value of "cgi", "local", "scgi", or "server" depending
      on how Wapp was launched.

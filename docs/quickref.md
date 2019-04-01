@@ -68,7 +68,8 @@ Wapp Quick Reference
 |SCRIPT\_FILENAME|&rarr;|Full pathname of the Wapp application script|
 |SCRIPT\_NAME|&rarr;|Prefix of PATH\_INFO that identifies the application script|
 |SELF\_URL|&rarr;|URL of this request without PATH\_TAIL|
-|WAPP\_MODE|&rarr;|One of "cgi", "scgi", "server", or "local"|
+|SERVER\_ADDR|&rarr;|IP address of the webserver sending an SCGI request|
+|WAPP\_MODE|&rarr;|One of "cgi", "scgi", "remote-scgi", "server", or "local"|
 
 4.0 URL Parsing
 ---------------
