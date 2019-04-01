@@ -9,7 +9,7 @@ Wapp applications are easy to develop.  A hello-world program is as follows:
 >
     #!/usr/bin/wapptclsh
     package require wapp
-    proc wapp-default {req} {
+    proc wapp-default {} {
        wapp-subst {<h1>Hello, World!</h1>\n}
     }
     wapp-start $::argv
