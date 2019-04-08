@@ -155,7 +155,7 @@ proc wappInt-enc-qp {s} {
   return $s
 }
 proc wappInt-enc-string {s} {
-  return [string map {\\ \\\\ \" \\\" ' \\' < \\u003c} $s]
+  return [string map {\\ \\\\ \" \\\" ' \\' < \\u003c \n \\n \r \\r} $s]
 }
 
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns
