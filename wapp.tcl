@@ -155,7 +155,14 @@ proc wappInt-enc-qp {s} {
   return $s
 }
 proc wappInt-enc-string {s} {
-  return [string map {\\ \\\\ \" \\\" ' \\' < \\u003c \n \\n \r \\r} $s]
+  return [string map {\\ \\\\ \" \\\" ' \\' < \\u003c \n \\n \r \\r
+  	     \f \\f \t \\t \x01 \\u0001 \x02 \\u0002 \x03 \\u0003
+  	     \x04 \\u0004 \x05 \\u0005 \x06 \\u0006 \x07 \\u0007
+  	     \x0b \\u000b \x0e \\u000e \x0f \\u000f \x10 \\u0010
+  	     \x11 \\u0011 \x12 \\u0012 \x13 \\u0013 \x14 \\u0014
+  	     \x15 \\u0015 \x16 \\u0016 \x17 \\u0017 \x18 \\u0018
+  	     \x19 \\u0019 \x1a \\u001a \x1b \\u001b \x1c \\u001c
+  	     \x1d \\u001d \x1e \\u001e \x1f \\u001f} $s]
 }
 
 # This is a helper routine for wappInt-enc-url and wappInt-enc-qp.  It returns
