@@ -4,16 +4,28 @@
 # upload using <input type="file">
 #
 package require wapp
-proc wapp-default {} {
-  wapp-content-security-policy {default-src 'self'; img-src 'self' data:}
+proc common-header {} {
   wapp-trim {
     <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link href="%url([wapp-param SCRIPT_NAME]/style.css)" rel="stylesheet">
     <title>Wapp File-Upload Demo</title>
     </head>
     <body>
+  }
+}
+proc common-footer {} {
+  wapp-trim {
+    </body>
+    </html>
+  }
+}
+proc wapp-default {} {
+  wapp-content-security-policy {default-src 'self'; img-src 'self' data:}
+  common-header
+  wapp-trim {
     <h1>Wapp File-Upload Demo</h1>
   }
   # NB:  You must set enctype="multipart/form-data" on your <form> in order
@@ -24,6 +36,8 @@ proc wapp-default {} {
     <input type="checkbox" name="showenv" value="1">Show CGI Environment<br>
     <input type="submit" value="Submit">
     </form></p>
+    <p><a href='%html([wapp-param SCRIPT_NAME])/self'>Show the script
+    that generates this page</a></p>
   }
   # Ordinary query parameters come through just like normal
   if {[wapp-param showenv 0]} {
@@ -65,9 +79,28 @@ proc wapp-default {} {
       }
     }
   }
+  common-footer
+}
+proc wapp-page-self {} {
+  wapp-cache-control max-age=3600
+  common-header
+  set fd [open [wapp-param SCRIPT_FILENAME] rb]
+  set script [read $fd]
+  close $fd
   wapp-trim {
-    </body>
-    </html>
+    <h1>Wapp Script That Shows A Copy Of Itself</h1>
+    <pre>%html($script)</pre>
+  }
+  common-footer
+}
+proc wapp-page-style.css {} {
+  wapp-mimetype text/css
+  wapp-cache-control max-age=3600
+  wapp-trim {
+    pre {
+       border: 1px solid black;
+       padding: 1ex;
+    }
   }
 }
 wapp-start $argv
