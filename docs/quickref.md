@@ -29,7 +29,7 @@ Wapp Quick Reference
 |**wapp-param** _NAME_ _DEFAULT_|&rarr;|Return value of parameter _NAME_|
 |**wapp-set-param** _NAME_ _VALUE_|&rarr;|Set parameter _NAME_ to _VALUE_|
 |**wapp-param-exists** _NAME_|&rarr;|True if parameter _NAME_ exists|
-|**wapp-param_list** _GLOB_|&rarr;|Return parameter names matching _GLOB_|
+|**wapp-param-list** _GLOB_|&rarr;|Return parameter names matching _GLOB_|
 |**wapp-allow-xorigin-params**|&rarr;|Allow GET and POST parameters for cross-origin requests|
 |**wapp-mimetype** _MIMETYPE_|&rarr;|Set the reply mimetype|
 |**wapp-reply-code** _CODE_|&rarr;|Set the HTTP reply code|
