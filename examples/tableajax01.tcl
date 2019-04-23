@@ -1,13 +1,30 @@
+#!/usr/bin/wapptclsh
 # This script demonstrates how to receive bulk HTML content
 # (such as a complete <table>) and insert it in the middle
 # of the DOM using XMLHttpRequest
 #
 package require wapp
-proc wapp-default {} {
+proc common-header {} {
   wapp-trim {
     <html>
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link href="%url([wapp-param SCRIPT_NAME]/style.css)" rel="stylesheet">
     <body>
-    <p>This application demonstrations how to use XMLHttpResult to obtain
+  }
+}
+proc common-footer {} {
+  wapp-trim {
+    </body>
+    </html>
+  }
+}
+
+proc wapp-default {} {
+  common-header
+  wapp-trim {
+    <p>This application demonstrates how to use XMLHttpResult to obtain
     bulk HTML text (such as a large &lt;table&gt;) and then insert that
     text in the middle of the DOM.</p>
 
@@ -20,7 +37,11 @@ proc wapp-default {} {
     the initial paragraph
     </form></p>
     <script src='%url([wapp-param SCRIPT_NAME]/script.js)'></script>
+
+    <p><a href='%html([wapp-param SCRIPT_NAME])/self'>Show the Wapp script
+    that generates this page</a></p>
   }
+  common-footer
 }
 
 # This is the javascript that takes control of the form and causes form
@@ -64,4 +85,30 @@ proc wapp-page-gettable {} {
     </table>
   }
 }
+
+# The /self page that shows the text of this script.
+#
+proc wapp-page-self {} {
+  wapp-cache-control max-age=3600
+  common-header
+  set fd [open [wapp-param SCRIPT_FILENAME] rb]
+  set script [read $fd]
+  close $fd
+  wapp-trim {
+    <h1>Wapp Script That Shows A Copy Of Itself</h1>
+    <pre>%html($script)</pre>
+  }
+  common-footer
+}
+proc wapp-page-style.css {} {
+  wapp-mimetype text/css
+  wapp-cache-control max-age=3600
+  wapp-trim {
+    pre {
+       border: 1px solid black;
+       padding: 1ex;
+    }
+  }
+}
+
 wapp-start $argv
