@@ -17,3 +17,13 @@ The following are some of the known uses of Wapp in the wild:
       (NB: The search.tcl.in script is processed using
       [mkscript.tcl](https://sqlite.org/docsrc/file/search/mkscript.tcl)
       prior to being deployed.)
+
+  4.  The [TCL-driven tests for SQLite](https://www.sqlite.org/testing.html#test_harnesses)
+      have a Wapp-based interface that shows the testing progress.  To see
+      this interface in action, get a copy of the SQLite source tree and
+      run:
+
+>
+      configure
+      make testfixture
+      tclsh test/wapptest.tcl
