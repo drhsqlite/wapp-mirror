@@ -28,3 +28,8 @@ Documentation
   *  [Example Applications](/file/examples)
   *  [Real-World Uses Of Wapp](/doc/trunk/docs/usageexamples.md)
   *  [Debugging Hints](/doc/trunk/docs/debughints.md)
+
+Simple Live Demos
+-----------------
+
+  *  <https://wapp.tcl.tk/demo/>
