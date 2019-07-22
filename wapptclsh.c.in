@@ -46,6 +46,10 @@ INCLUDE $ROOT/wapptclsh.tcl
 END_STRING
 ;
 
+#ifdef WAPP_ENABLE_TCLTLS
+extern int Tls_Init(Tcl_Interp*);
+#endif
+
 /*
 ** Return the text of the script to run.  Or, return NULL to run an
 ** interactive shell.
@@ -53,5 +57,8 @@ END_STRING
 const char *wapptclsh_init_proc(Tcl_Interp *interp){
   Tcl_GlobalEval(interp, zWapp);  /* Load the wapp.tcl extension */
   Tcl_GlobalEval(interp, zWappTclshInit); /* Load the main loop script */
+#ifdef WAPP_ENABLE_TCLTLS
+  Tls_Init(interp);
+#endif
   return Tcl_GetVar(interp, "main_script", TCL_GLOBAL_ONLY);
 }
