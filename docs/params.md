@@ -128,10 +128,9 @@ in the "env.tcl" example above the "wapp-allow-xorigin-params" interface
 is used so that you can manually extend the URL to add new query parameters.
 
 If query parameters can have side effects, then you should omit the
-wapp-allow-xorigin-params call.  Only invoke wapp-allow-xorigin-params
-for web pages that only query information.  Do not invoke
-wapp-allow-xorigin-params on pages where the parameters can be used
-to change server-side state.
+wapp-allow-xorigin-params call.  The wapp-allow-xorigin-params command
+is safe for read-only web pages.  Do not invoke wapp-allow-xorigin-params
+on pages where the parameters can be used to change server state.
 
 <a name='cgidetail'></a>
 3.0 CGI Parameter Details [(Quick reference)](quickref.md#cgiparams)
