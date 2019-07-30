@@ -122,7 +122,15 @@ The following is a complete list of the public interface procs in Wapp:
      (b) the use of eval(), and (c) in-line javascript or CSS of any kind.
      Set _POLICY_ to "off" to completely disable the CSP mechanism.  Or
      specify some other policy suitable for the needs of the application.
-
+     <p>The following allows inline images using
+     &lt;img src='data:...'&gt; and inline "style='...'" attributes,
+     but restricts all other attack vectors and thus seems to be a good
+     choice for many applications:
+     <blockquote><pre>
+     wapp-content-security-policy {
+        default-src 'self' data:;
+        style-src 'self' 'unsafe-inline';
+     }</pre><blockquote>
 
   +  <a name="debug-env"></a>**wapp-debug-env**  
      This routine returns text that describes all of the Wapp parameters.
