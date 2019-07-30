@@ -331,7 +331,7 @@ proc wapp-content-security-policy {val} {
 #
 proc wapp-safety-check {} {
   set res {}
-  foreach p [info procs] {
+  foreach p [info command] {
     set ln 0
     foreach x [split [info body $p] \n] {
       incr ln
@@ -691,7 +691,7 @@ proc wappInt-handle-request {chan useCgi} {
   wappInt-trace
   set mname [dict get $wapp PATH_HEAD]
   if {[catch {
-    if {$mname!="" && [llength [info proc wapp-page-$mname]]>0} {
+    if {$mname!="" && [llength [info command wapp-page-$mname]]>0} {
       wapp-page-$mname
     } else {
       wapp-default
