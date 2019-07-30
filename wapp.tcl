@@ -611,10 +611,35 @@ proc wappInt-decode-query-params {} {
 # Invoke application-supplied methods to generate a reply to
 # a single HTTP request.
 #
-# This routine always runs within [catch], so handle exceptions by
-# invoking [error].
+# This routine uses the global variable ::wapp and so must not be nested.
+# It must run to completion before the next instance runs.  If a recursive
+# instances of this routine starts while another is running, the the
+# recursive instance is added to a queue to be invoked after the current
+# instance finishes.  Yes, this means that WAPP IS SINGLE THREADED.  Only
+# a single page rendering instance my be running at a time.  There can
+# be multiple HTTP requests inbound at once, but only one my be processed
+# at a time once the request is full read and parsed.
 #
+set wappIntPending {}
+set wappIntLock 0
 proc wappInt-handle-request {chan useCgi} {
+  global wappIntPending wappIntLock
+  fileevent $chan readable {}
+  if {$wappIntLock} {
+    # Another instance of request is already running, so defer this one
+    lappend wappIntPending [list wappInt-handle-request $chan $useCgi]
+    return
+  }
+  set wappIntLock 1
+  catch [list wappInt-handle-request-unsafe $chan $useCgi]
+  set wappIntLock 0
+  if {[llength $wappIntPending]>0} {
+    # If there are deferred requests, then launch the oldest one
+    after idle [lindex $wappIntPending 0]
+    set wappIntPending [lrange $wappIntPending 1 end]
+  }
+}
+proc wappInt-handle-request-unsafe {chan useCgi} {
   global wapp
   dict set wapp .reply {}
   dict set wapp .mimetype {text/html; charset=utf-8}
