@@ -497,7 +497,7 @@ proc wappInt-http-readable-unsafe {chan} {
       } else {
         # There is no query content, so handle the request immediately
         set wapp $W
-        wappInt-handle-request $chan 0
+        wappInt-handle-request $chan
       }
     }
   } else {
@@ -509,7 +509,7 @@ proc wappInt-http-readable-unsafe {chan} {
     if {[dict get $W .toread]<=0} {
       # Handle the request as soon as all the query content is received
       set wapp $W
-      wappInt-handle-request $chan 0
+      wappInt-handle-request $chan
     }
   }
 }
@@ -626,16 +626,16 @@ proc wappInt-decode-query-params {} {
 #
 set wappIntPending {}
 set wappIntLock 0
-proc wappInt-handle-request {chan useCgi} {
+proc wappInt-handle-request {chan} {
   global wappIntPending wappIntLock
   fileevent $chan readable {}
   if {$wappIntLock} {
     # Another instance of request is already running, so defer this one
-    lappend wappIntPending [list wappInt-handle-request $chan $useCgi]
+    lappend wappIntPending [list wappInt-handle-request $chan]
     return
   }
   set wappIntLock 1
-  catch [list wappInt-handle-request-unsafe $chan $useCgi]
+  catch [list wappInt-handle-request-unsafe $chan]
   set wappIntLock 0
   if {[llength $wappIntPending]>0} {
     # If there are deferred requests, then launch the oldest one
@@ -643,7 +643,7 @@ proc wappInt-handle-request {chan useCgi} {
     set wappIntPending [lrange $wappIntPending 1 end]
   }
 }
-proc wappInt-handle-request-unsafe {chan useCgi} {
+proc wappInt-handle-request-unsafe {chan} {
   global wapp
   dict set wapp .reply {}
   dict set wapp .mimetype {text/html; charset=utf-8}
@@ -835,7 +835,7 @@ proc wappInt-handle-cgi-request {} {
   }
   dict set wapp WAPP_MODE cgi
   fconfigure stdout -translation binary
-  wappInt-handle-request stdout 1
+  wappInt-handle-request-unsafe stdout
 }
 
 # Process new text received on an inbound SCGI request
@@ -876,7 +876,7 @@ proc wappInt-scgi-readable-unsafe {chan} {
       # There is no query content, so handle the request immediately
       dict set W SERVER_ADDR [dict get $W .remove_addr]
       set wapp $W
-      wappInt-handle-request $chan 0
+      wappInt-handle-request $chan
     }
   } else {
     # If .toread is set, that means we are reading the query content.
@@ -888,7 +888,7 @@ proc wappInt-scgi-readable-unsafe {chan} {
       # Handle the request as soon as all the query content is received
       dict set W SERVER_ADDR [dict get $W .remove_addr]
       set wapp $W
-      wappInt-handle-request $chan 0
+      wappInt-handle-request $chan
     }
   }
 }
