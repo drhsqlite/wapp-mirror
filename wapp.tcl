@@ -799,32 +799,7 @@ proc wapp-before-dispatch-hook {} {return}
 #
 proc wappInt-handle-cgi-request {} {
   global wapp env
-  foreach key {
-    CONTENT_LENGTH
-    CONTENT_TYPE
-    DOCUMENT_ROOT
-    HTTP_ACCEPT_ENCODING
-    HTTP_COOKIE
-    HTTP_HOST
-    HTTP_REFERER
-    HTTP_USER_AGENT
-    HTTPS
-    PATH_INFO
-    QUERY_STRING
-    REMOTE_ADDR
-    REQUEST_METHOD
-    REQUEST_URI
-    REMOTE_USER
-    SCRIPT_FILENAME
-    SCRIPT_NAME
-    SERVER_NAME
-    SERVER_PORT
-    SERVER_PROTOCOL
-  } {
-    if {[info exists env($key)]} {
-      dict set wapp $key $env($key)
-    }
-  }
+  foreach key [array names env {[A-Z]*}] {dict set wapp $key $env($key)}
   set len 0
   if {[dict exists $wapp CONTENT_LENGTH]} {
     set len [dict get $wapp CONTENT_LENGTH]
