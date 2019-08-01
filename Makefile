@@ -1,6 +1,7 @@
 #!/usr/bin/make
 
 CC = gcc -Os -static
+OPTS = -DSQLITE_ENABLE_DESERIALIZE
 TCLLIB = /home/drh/tcl/lib/libtcl8.7.a -lm -lz -lpthread -ldl
 TCLINC = /home/drh/tcl/include
 TCLSH = tclsh
@@ -8,7 +9,7 @@ TCLSH = tclsh
 all: wapptclsh
 
 wapptclsh: wapptclsh.c
-	$(CC) -I. -I$(TCLINC) -o $@ wapptclsh.c $(TCLLIB)
+	$(CC) -I. -I$(TCLINC) -o $@ $(OPTS) wapptclsh.c $(TCLLIB)
 
 wapptclsh.c:	wapptclsh.c.in wapp.tcl wapptclsh.tcl tclsqlite3.c mkccode.tcl
 	$(TCLSH) mkccode.tcl wapptclsh.c.in >$@
