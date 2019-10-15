@@ -169,7 +169,7 @@ above can be simplified to the following:
 
 Many Wapp applications contain an /env page for debugging and
 trouble-shooting purpose.  Examples:
-<https://sqlite.org/checklists/env> and
+<https://sqlite.org/src/ext/checklist/top/env> and
 <https://sqlite.org/search?env=1>
 
 

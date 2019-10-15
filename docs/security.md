@@ -9,14 +9,14 @@ Security features in Wapp include:
 
   1.  The default
       [Content Security Policy](https://en.wikipedia.org/wiki/Content_Security_Policy)
-      of "CSP"
+      ("CSP")
       for all Wapp applications is _default-src 'self'_.  In that mode,
       resources must all be loaded from the same origin, the use of
       eval() and similar commands in javascript is prohibited, and
       no in-line javascript or CSS is allowed.  These limitations help
       keep applications safe from 
-      [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting)
-      attacks, even in the face of application coding errors. If these
+      [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting),
+      even in the face of application coding errors. If these
       restrictions are too severe for an application, the CSP can be
       relaxed or disabled using the 
       "[wapp-content-security-policy](commands.md#csp)" command.

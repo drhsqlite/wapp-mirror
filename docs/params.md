@@ -303,7 +303,7 @@ extensions.  The following is the same information show in a diagram:
 
 ### 3.2 Undefined Parameters When Using SCGI on Nginx
 
-Some of the CGI parameters are undefined by default when using CGI mode
+Some of the CGI parameters are undefined by default when using SCGI mode
 with Nginx.  If these CGI parameters are needed by the application, then
 values must be assigned in the Nginx configuration file.  For example:
 

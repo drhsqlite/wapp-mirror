@@ -1,7 +1,7 @@
 Wapp Commands
 =============
 
-Wapp really just a collection of TCL procs.  All procs are in a single file
+Wapp is really just a collection of TCL procs. All procs are in a single file
 named "wapp.tcl".
 
 The procs that form the public interface for Wapp begin with "wapp-".  The
