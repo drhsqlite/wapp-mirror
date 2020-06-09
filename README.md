@@ -33,3 +33,8 @@ Simple Live Demos
 -----------------
 
   *  <https://wapp.tcl.tk/demo/>
+
+Extended And Enhanced Wapp By Oleg (lego12239)
+----------------------------------------------
+
+  *  <https://github.com/lego12239/wapp>
