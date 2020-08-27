@@ -9,7 +9,7 @@ with the following advantages:
   *   Resistant to attacks and exploits
   *   Cross-platform &rarr; CGI, SCGI, or a built-in web server
   *   The Wapp framework itself is a single-file TCL script
-  *   Easy to embedded in a larger application, if desired
+  *   Easy to embed in a larger application, if desired
   *   2-clause BSD license
 
 Documentation
