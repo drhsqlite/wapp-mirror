@@ -1,6 +1,7 @@
 #!/usr/bin/make
 
-CC = gcc -Os -static
+CFLAGS = -Os -static
+CC = gcc $(CFLAGS)
 OPTS = -DSQLITE_ENABLE_DESERIALIZE
 TCLLIB = /home/drh/tcl/lib/libtcl8.7.a -lm -lz -lpthread -ldl
 TCLINC = /home/drh/tcl/include
