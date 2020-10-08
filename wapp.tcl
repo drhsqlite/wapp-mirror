@@ -738,6 +738,7 @@ proc wappInt-handle-request-unsafe {chan} {
     }
     dict unset wapp .new-cookies
   }
+  wapp-before-reply-hook
 
   # Transmit the HTTP reply
   #
@@ -794,6 +795,15 @@ proc wappInt-handle-request-unsafe {chan} {
 # to do additional transformations or checks.
 #
 proc wapp-before-dispatch-hook {} {return}
+
+# This routine runs after the request-handler dispatch and just
+# before the reply is generated.  The default implementation is
+# a no-op, but applications can override to do validation and security
+# checks on the reply, such as verifying that no sensitive information
+# such as an API key or password is accidentally included in the
+# reply text.
+#
+proc wapp-before-reply-hook {} {return}
 
 # Process a single CGI request
 #
