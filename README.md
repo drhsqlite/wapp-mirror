@@ -34,6 +34,18 @@ Simple Live Demos
 
   *  <https://wapp.tcl.tk/demo/>
 
+Downloads
+---------
+
+  *   Download just the single
+      [Wapp TCL file](/file/wapp.tcl?mimetype=text/plain), if you already
+      have a TCL environment
+  *   Download a [tarball](/tarball/wapp.tar.gz) or
+      [ZIP Archive](/zip/wapp.zip) of the latest snapshot of this
+      entire repository, or
+  *   Clone the entire repository using the [Fossil](https://fossil-scm.org/)
+      command "fossil clone [](https://wapp.tcl.tk)".
+
 Extended And Enhanced Wapp By Oleg (lego12239)
 ----------------------------------------------
 
