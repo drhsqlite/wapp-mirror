@@ -137,7 +137,7 @@ proc wappInt-enc-unsafe {txt} {
   return $txt
 }
 proc wappInt-enc-url {s} {
-  if {[regsub -all {[^-{}@~?=#_.:/a-zA-Z0-9]} $s {[wappInt-%HHchar {&}]} s]} {
+  if {[regsub -all {[^-{}@~?=#_.:/a-zA-Z0-9]} $s {[wappInt-%HHchar \&]} s]} {
     set s [subst -novar -noback $s]
   }
   if {[regsub -all {[{}]} $s {[wappInt-%HHchar \\&]} s]} {
@@ -146,7 +146,7 @@ proc wappInt-enc-url {s} {
   return $s
 }
 proc wappInt-enc-qp {s} {
-  if {[regsub -all {[^-{}_.a-zA-Z0-9]} $s {[wappInt-%HHchar {&}]} s]} {
+  if {[regsub -all {[^-{}_.a-zA-Z0-9]} $s {[wappInt-%HHchar \&]} s]} {
     set s [subst -novar -noback $s]
   }
   if {[regsub -all {[{}]} $s {[wappInt-%HHchar \\&]} s]} {
