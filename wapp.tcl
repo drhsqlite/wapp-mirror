@@ -742,10 +742,16 @@ proc wappInt-handle-request-unsafe {chan} {
 
   # Transmit the HTTP reply
   #
-  if {$chan=="stdout"} {
-    puts $chan "Status: [dict get $wapp .reply-code]\r"
+  set rc [dict get $wapp .reply-code]
+  if {$rc=="ABORT"} {
+    # If the page handler invokes "wapp-reply-code ABORT" then close the
+    # TCP/IP connection without sending any reply
+    wappInt-close-channel $chan
+    return
+  } elseif {$chan=="stdout"} {
+    puts $chan "Status: $rc\r"
   } else {
-    puts $chan "HTTP/1.1 [dict get $wapp .reply-code]\r"
+    puts $chan "HTTP/1.1 $rc\r"
     puts $chan "Server: wapp\r"
     puts $chan "Connection: close\r"
   }
